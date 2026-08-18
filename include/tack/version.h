@@ -2,9 +2,9 @@
 #define TACK_VERSION_H
 
 #define TACK_VERSION_MAJOR 0
-#define TACK_VERSION_MINOR 3
+#define TACK_VERSION_MINOR 4
 #define TACK_VERSION_PATCH 0
-#define TACK_VERSION_STRING "0.3.0"
+#define TACK_VERSION_STRING "0.4.0"
 #define TACK_NAME "Tack"
 
 const char *tack_version_string(void);

@@ -31,5 +31,10 @@ int buf_join_next(Buffer *b, size_t row);
 
 int buf_load_mem(Buffer *b, const char *data, size_t n);
 char *buf_to_string(const Buffer *b, size_t *out_len);
+char *buf_copy_span(const Buffer *b, size_t r1, size_t c1, size_t r2, size_t c2,
+                    size_t *out_len);
+int buf_delete_span(Buffer *b, size_t r1, size_t c1, size_t r2, size_t c2);
+void buf_pos_after(size_t row, size_t col, const char *s, size_t n, size_t *orow,
+                   size_t *ocol);
 
 #endif

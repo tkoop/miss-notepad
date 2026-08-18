@@ -24,9 +24,37 @@ int editor_init(Editor *e)
     return buf_init(&e->buf);
 }
 
+static void undo_item_free(UndoItem *it)
+{
+    free(it->text);
+    it->text = NULL;
+    it->len = 0;
+}
+
+static void undo_clear_from(UndoStack *u, size_t from)
+{
+    size_t i;
+    for (i = from; i < u->count; i++) {
+        undo_item_free(&u->items[i]);
+    }
+    u->count = from;
+    if (u->index > u->count) {
+        u->index = u->count;
+    }
+}
+
+static void undo_free(UndoStack *u)
+{
+    undo_clear_from(u, 0);
+    free(u->items);
+    u->items = NULL;
+    u->cap = 0;
+}
+
 void editor_free(Editor *e)
 {
     buf_free(&e->buf);
+    undo_free(&e->undo);
     free(e->filename);
     e->filename = NULL;
 }
@@ -277,6 +305,208 @@ void editor_move_word_right(Editor *e)
     editor_scroll_into_view(e);
 }
 
+static int undo_reserve(UndoStack *u, size_t need)
+{
+    UndoItem *p;
+    size_t cap;
+    if (need <= u->cap) {
+        return 0;
+    }
+    cap = u->cap == 0 ? 32 : u->cap;
+    while (cap < need) {
+        cap *= 2;
+    }
+    p = realloc(u->items, cap * sizeof(UndoItem));
+    if (p == NULL) {
+        return -1;
+    }
+    u->items = p;
+    u->cap = cap;
+    return 0;
+}
+
+static int undo_push(Editor *e, EditKind kind, size_t row, size_t col,
+                     const char *text, size_t len)
+{
+    UndoItem *it;
+    undo_clear_from(&e->undo, e->undo.index);
+    if (undo_reserve(&e->undo, e->undo.count + 1) != 0) {
+        return -1;
+    }
+    it = &e->undo.items[e->undo.count];
+    it->kind = kind;
+    it->row = row;
+    it->col = col;
+    it->len = len;
+    it->text = malloc(len + 1);
+    if (it->text == NULL) {
+        return -1;
+    }
+    if (len > 0 && text != NULL) {
+        memcpy(it->text, text, len);
+    }
+    it->text[len] = '\0';
+    e->undo.count++;
+    e->undo.index = e->undo.count;
+    return 0;
+}
+
+static int apply_insert(Editor *e, size_t row, size_t col, const char *s,
+                        size_t n, int record)
+{
+    size_t er, ec;
+    if (buf_insert(&e->buf, row, col, s, n) != 0) {
+        return -1;
+    }
+    buf_pos_after(row, col, s, n, &er, &ec);
+    e->cy = er;
+    e->cx = ec;
+    e->dirty = 1;
+    remember_goal(e);
+    editor_scroll_into_view(e);
+    if (record) {
+        return undo_push(e, EDIT_INSERT, row, col, s, n);
+    }
+    return 0;
+}
+
+static int apply_delete_span(Editor *e, size_t r1, size_t c1, size_t r2,
+                             size_t c2, int record)
+{
+    size_t n = 0;
+    char *text;
+    if (r1 == r2 && c1 == c2) {
+        return 0;
+    }
+    text = buf_copy_span(&e->buf, r1, c1, r2, c2, &n);
+    if (text == NULL) {
+        return -1;
+    }
+    if (buf_delete_span(&e->buf, r1, c1, r2, c2) != 0) {
+        free(text);
+        return -1;
+    }
+    if (r1 > r2 || (r1 == r2 && c1 > c2)) {
+        e->cy = r2;
+        e->cx = c2;
+    } else {
+        e->cy = r1;
+        e->cx = c1;
+    }
+    e->dirty = 1;
+    remember_goal(e);
+    editor_scroll_into_view(e);
+    if (record) {
+        if (undo_push(e, EDIT_DELETE, e->cy, e->cx, text, n) != 0) {
+            free(text);
+            return -1;
+        }
+    }
+    free(text);
+    return 0;
+}
+
+int editor_insert_text(Editor *e, const char *s, size_t n)
+{
+    if (s == NULL || n == 0) {
+        return 0;
+    }
+    return apply_insert(e, e->cy, e->cx, s, n, 1);
+}
+
+int editor_insert_char(Editor *e, uint32_t cp)
+{
+    char u[4];
+    int n = utf8_encode(cp, u);
+    if (n <= 0) {
+        return -1;
+    }
+    return editor_insert_text(e, u, (size_t)n);
+}
+
+int editor_newline(Editor *e)
+{
+    return editor_insert_text(e, "\n", 1);
+}
+
+int editor_backspace(Editor *e)
+{
+    if (e->cx == 0 && e->cy == 0) {
+        return 0;
+    }
+    if (e->cx == 0) {
+        size_t prev = e->cy - 1;
+        size_t col = buf_line_len(&e->buf, prev);
+        return apply_delete_span(e, prev, col, e->cy, 0, 1);
+    } else {
+        size_t len = 0;
+        const char *line = buf_line(&e->buf, e->cy, &len);
+        size_t prev = utf8_prev(line, len, e->cx);
+        return apply_delete_span(e, e->cy, prev, e->cy, e->cx, 1);
+    }
+}
+
+int editor_delete_forward(Editor *e)
+{
+    size_t len = buf_line_len(&e->buf, e->cy);
+    if (e->cx < len) {
+        const char *line = buf_line(&e->buf, e->cy, NULL);
+        size_t next = utf8_next(line, len, e->cx);
+        return apply_delete_span(e, e->cy, e->cx, e->cy, next, 1);
+    }
+    if (e->cy + 1 < buf_line_count(&e->buf)) {
+        return apply_delete_span(e, e->cy, e->cx, e->cy + 1, 0, 1);
+    }
+    return 0;
+}
+
+int editor_undo(Editor *e)
+{
+    UndoItem *it;
+    if (e->undo.index == 0) {
+        return 0;
+    }
+    e->undo.index--;
+    it = &e->undo.items[e->undo.index];
+    if (it->kind == EDIT_INSERT) {
+        size_t er, ec;
+        buf_pos_after(it->row, it->col, it->text, it->len, &er, &ec);
+        if (apply_delete_span(e, it->row, it->col, er, ec, 0) != 0) {
+            return -1;
+        }
+    } else {
+        if (apply_insert(e, it->row, it->col, it->text, it->len, 0) != 0) {
+            return -1;
+        }
+    }
+    if (e->undo.index == 0) {
+        e->dirty = 0;
+    }
+    return 0;
+}
+
+int editor_redo(Editor *e)
+{
+    UndoItem *it;
+    if (e->undo.index >= e->undo.count) {
+        return 0;
+    }
+    it = &e->undo.items[e->undo.index];
+    if (it->kind == EDIT_INSERT) {
+        if (apply_insert(e, it->row, it->col, it->text, it->len, 0) != 0) {
+            return -1;
+        }
+    } else {
+        size_t er, ec;
+        buf_pos_after(it->row, it->col, it->text, it->len, &er, &ec);
+        if (apply_delete_span(e, it->row, it->col, er, ec, 0) != 0) {
+            return -1;
+        }
+    }
+    e->undo.index++;
+    return 0;
+}
+
 int editor_handle_event(Editor *e, const Event *ev)
 {
     if (ev == NULL || ev->kind != EV_KEY) {
@@ -285,6 +515,14 @@ int editor_handle_event(Editor *e, const Event *ev)
     if (ev->key == KEY_CHAR && ev->mods == MOD_CTRL && ev->ch == 'q') {
         e->quit = 1;
         return 1;
+    }
+    if (ev->key == KEY_CHAR && ev->mods == MOD_CTRL && ev->ch == 'z') {
+        editor_undo(e);
+        return e->quit;
+    }
+    if (ev->key == KEY_CHAR && ev->mods == MOD_CTRL && ev->ch == 'y') {
+        editor_redo(e);
+        return e->quit;
     }
     switch (ev->key) {
     case KEY_LEFT:
@@ -326,6 +564,23 @@ int editor_handle_event(Editor *e, const Event *ev)
         break;
     case KEY_PGDN:
         editor_move_page_down(e);
+        break;
+    case KEY_ENTER:
+        editor_newline(e);
+        break;
+    case KEY_BACKSPACE:
+        editor_backspace(e);
+        break;
+    case KEY_DELETE:
+        editor_delete_forward(e);
+        break;
+    case KEY_TAB:
+        editor_insert_char(e, (uint32_t)'\t');
+        break;
+    case KEY_CHAR:
+        if (ev->mods == 0 && ev->ch >= 32) {
+            editor_insert_char(e, ev->ch);
+        }
         break;
     default:
         break;
@@ -415,7 +670,7 @@ void editor_render(const Editor *e, Screen *s)
     screen_fill(s, 0, 0, s->cols, 1, (uint32_t)' ', STYLE_TITLE);
     screen_puts(s, 0, 0, title, STYLE_TITLE);
 
-    snprintf(status, sizeof(status), " Ln %d, Col %d    Ctrl+Q quit",
+    snprintf(status, sizeof(status), " Ln %d, Col %d    Ctrl+Z undo  Ctrl+Q quit",
              (int)e->cy + 1, editor_cursor_col(e) + 1);
     screen_fill(s, s->rows - 1, 0, s->cols, 1, (uint32_t)' ', STYLE_STATUS);
     screen_puts(s, s->rows - 1, 0, status, STYLE_STATUS);

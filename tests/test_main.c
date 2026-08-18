@@ -12,6 +12,7 @@ void test_buffer_crlf(void);
 void test_buffer_split_join(void);
 void test_buffer_delete(void);
 void test_buffer_load_replace(void);
+void test_buffer_span(void);
 void test_buffer_split_at_ends(void);
 void test_keys_ctrl_q(void);
 void test_keys_arrows(void);
@@ -28,6 +29,10 @@ void test_editor_ctrl_q(void);
 void test_editor_handle_arrows(void);
 void test_editor_scroll(void);
 void test_editor_render(void);
+void test_editor_type_and_undo(void);
+void test_editor_backspace_delete(void);
+void test_editor_backspace_join(void);
+void test_editor_enter(void);
 void test_editor_word_move(void);
 void test_file_read_all(void);
 void test_file_read_missing(void);
@@ -53,6 +58,7 @@ int main(void)
         {"buffer_split_join", test_buffer_split_join},
         {"buffer_delete", test_buffer_delete},
         {"buffer_load_replace", test_buffer_load_replace},
+        {"buffer_span", test_buffer_span},
         {"buffer_split_at_ends", test_buffer_split_at_ends},
         {"keys_ctrl_q", test_keys_ctrl_q},
         {"keys_arrows", test_keys_arrows},
@@ -69,6 +75,10 @@ int main(void)
         {"editor_handle_arrows", test_editor_handle_arrows},
         {"editor_scroll", test_editor_scroll},
         {"editor_render", test_editor_render},
+        {"editor_type_and_undo", test_editor_type_and_undo},
+        {"editor_backspace_delete", test_editor_backspace_delete},
+        {"editor_backspace_join", test_editor_backspace_join},
+        {"editor_enter", test_editor_enter},
         {"editor_word_move", test_editor_word_move},
         {"file_read_all", test_file_read_all},
         {"file_read_missing", test_file_read_missing},

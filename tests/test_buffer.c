@@ -96,6 +96,22 @@ void test_buffer_load_replace(void)
     buf_free(&b);
 }
 
+void test_buffer_span(void)
+{
+    Buffer b;
+    size_t n = 0;
+    char *s;
+    buf_init(&b);
+    buf_insert_cstr(&b, 0, 0, "hello\nworld");
+    s = buf_copy_span(&b, 0, 3, 1, 2, &n);
+    ASSERT_STREQ("copy span", "lo\nwo", s);
+    ASSERT_EQ_INT("span len", 5, (int)n);
+    free(s);
+    ASSERT_EQ_INT("delete span", 0, buf_delete_span(&b, 0, 3, 1, 2));
+    assert_buffer("after span del", &b, "helrld");
+    buf_free(&b);
+}
+
 void test_buffer_split_at_ends(void)
 {
     Buffer b;

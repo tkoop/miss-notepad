@@ -5,6 +5,15 @@ All notable changes to Tack are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] — 2026-08-18
+
+### Added
+
+- Insert text, Enter for a new line, Tab, Backspace, and Delete
+- Undo / redo (Ctrl+Z / Ctrl+Y)
+- Multi-line buffer span copy and delete (used by undo)
+- Dirty-document flag while editing
+
 ## [0.3.0] — 2026-08-18
 
 ### Added

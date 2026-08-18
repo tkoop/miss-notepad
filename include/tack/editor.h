@@ -5,6 +5,25 @@
 #include "tack/keys.h"
 #include "tack/screen.h"
 
+#include <stdint.h>
+
+typedef enum { EDIT_INSERT = 0, EDIT_DELETE = 1 } EditKind;
+
+typedef struct {
+    EditKind kind;
+    size_t row;
+    size_t col;
+    char *text;
+    size_t len;
+} UndoItem;
+
+typedef struct {
+    UndoItem *items;
+    size_t count;
+    size_t cap;
+    size_t index;
+} UndoStack;
+
 typedef struct {
     Buffer buf;
     size_t cx;
@@ -18,6 +37,7 @@ typedef struct {
     int dirty;
     int quit;
     char *filename;
+    UndoStack undo;
 } Editor;
 
 int editor_init(Editor *e);
@@ -40,5 +60,12 @@ void editor_scroll_into_view(Editor *e);
 int editor_handle_event(Editor *e, const Event *ev);
 void editor_render(const Editor *e, Screen *s);
 int editor_cursor_col(const Editor *e);
+int editor_insert_text(Editor *e, const char *s, size_t n);
+int editor_insert_char(Editor *e, uint32_t cp);
+int editor_newline(Editor *e);
+int editor_backspace(Editor *e);
+int editor_delete_forward(Editor *e);
+int editor_undo(Editor *e);
+int editor_redo(Editor *e);
 
 #endif

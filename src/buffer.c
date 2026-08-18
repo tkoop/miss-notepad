@@ -337,3 +337,132 @@ char *buf_to_string(const Buffer *b, size_t *out_len)
     }
     return out;
 }
+
+static void normalize_span(const Buffer *b, size_t *r1, size_t *c1, size_t *r2,
+                           size_t *c2)
+{
+    if (*r1 > *r2 || (*r1 == *r2 && *c1 > *c2)) {
+        size_t tr = *r1, tc = *c1;
+        *r1 = *r2;
+        *c1 = *c2;
+        *r2 = tr;
+        *c2 = tc;
+    }
+    if (*r1 >= b->count) {
+        *r1 = b->count ? b->count - 1 : 0;
+    }
+    if (*r2 >= b->count) {
+        *r2 = b->count ? b->count - 1 : 0;
+    }
+    if (*c1 > b->lines[*r1].len) {
+        *c1 = b->lines[*r1].len;
+    }
+    if (*c2 > b->lines[*r2].len) {
+        *c2 = b->lines[*r2].len;
+    }
+}
+
+void buf_pos_after(size_t row, size_t col, const char *s, size_t n, size_t *orow,
+                   size_t *ocol)
+{
+    size_t i;
+    *orow = row;
+    *ocol = col;
+    for (i = 0; i < n; i++) {
+        if (s[i] == '\n') {
+            (*orow)++;
+            *ocol = 0;
+        } else if (s[i] != '\r') {
+            (*ocol)++;
+        }
+    }
+}
+
+char *buf_copy_span(const Buffer *b, size_t r1, size_t c1, size_t r2, size_t c2,
+                    size_t *out_len)
+{
+    size_t row;
+    size_t total = 0;
+    char *out;
+    size_t pos = 0;
+
+    normalize_span(b, &r1, &c1, &r2, &c2);
+    if (r1 == r2) {
+        size_t n = c2 - c1;
+        out = malloc(n + 1);
+        if (out == NULL) {
+            return NULL;
+        }
+        if (n > 0 && b->lines[r1].data != NULL) {
+            memcpy(out, b->lines[r1].data + c1, n);
+        }
+        out[n] = '\0';
+        if (out_len) {
+            *out_len = n;
+        }
+        return out;
+    }
+    total += b->lines[r1].len - c1;
+    total += 1;
+    for (row = r1 + 1; row < r2; row++) {
+        total += b->lines[row].len + 1;
+    }
+    total += c2;
+    out = malloc(total + 1);
+    if (out == NULL) {
+        return NULL;
+    }
+    if (b->lines[r1].len > c1 && b->lines[r1].data != NULL) {
+        memcpy(out + pos, b->lines[r1].data + c1, b->lines[r1].len - c1);
+    }
+    pos += b->lines[r1].len - c1;
+    out[pos++] = '\n';
+    for (row = r1 + 1; row < r2; row++) {
+        if (b->lines[row].len > 0 && b->lines[row].data != NULL) {
+            memcpy(out + pos, b->lines[row].data, b->lines[row].len);
+        }
+        pos += b->lines[row].len;
+        out[pos++] = '\n';
+    }
+    if (c2 > 0 && b->lines[r2].data != NULL) {
+        memcpy(out + pos, b->lines[r2].data, c2);
+    }
+    pos += c2;
+    out[pos] = '\0';
+    if (out_len) {
+        *out_len = pos;
+    }
+    return out;
+}
+
+int buf_delete_span(Buffer *b, size_t r1, size_t c1, size_t r2, size_t c2)
+{
+    size_t row;
+
+    normalize_span(b, &r1, &c1, &r2, &c2);
+    if (r1 == r2) {
+        return buf_delete(b, r1, c1, c2 - c1);
+    }
+    /* Keep prefix of first line + suffix of last line; drop middle lines. */
+    if (buf_delete(b, r1, c1, b->lines[r1].len - c1) != 0) {
+        return -1;
+    }
+    if (c2 > 0) {
+        if (line_insert(&b->lines[r1], b->lines[r1].len, b->lines[r2].data + c2,
+                        b->lines[r2].len - c2) != 0) {
+            return -1;
+        }
+    } else if (b->lines[r2].len > 0) {
+        if (line_insert(&b->lines[r1], b->lines[r1].len, b->lines[r2].data,
+                        b->lines[r2].len) != 0) {
+            return -1;
+        }
+    }
+    for (row = r2; row > r1; row--) {
+        line_free(&b->lines[row]);
+    }
+    memmove(&b->lines[r1 + 1], &b->lines[r2 + 1],
+            (b->count - r2 - 1) * sizeof(BufLine));
+    b->count -= (r2 - r1);
+    return 0;
+}

@@ -126,6 +126,99 @@ void test_editor_render(void)
     editor_free(&e);
 }
 
+void test_editor_type_and_undo(void)
+{
+    Editor e;
+    size_t n = 0;
+    char *s;
+    Event ev;
+    load_text(&e, "");
+    editor_insert_text(&e, "ab", 2);
+    editor_newline(&e);
+    editor_insert_text(&e, "c", 1);
+    s = buf_to_string(&e.buf, &n);
+    ASSERT_STREQ("typed", "ab\nc", s);
+    free(s);
+    ASSERT_EQ_INT("dirty", 1, e.dirty);
+    editor_undo(&e);
+    editor_undo(&e);
+    editor_undo(&e);
+    s = buf_to_string(&e.buf, &n);
+    ASSERT_STREQ("undone", "", s);
+    free(s);
+    editor_redo(&e);
+    s = buf_to_string(&e.buf, &n);
+    ASSERT_STREQ("redone first", "ab", s);
+    free(s);
+
+    ev.kind = EV_KEY;
+    ev.key = KEY_CHAR;
+    ev.ch = 'z';
+    ev.mods = MOD_CTRL;
+    ev.mx = ev.my = ev.mbtn = ev.mdown = 0;
+    editor_handle_event(&e, &ev);
+    s = buf_to_string(&e.buf, &n);
+    ASSERT_STREQ("ctrl+z", "", s);
+    free(s);
+    editor_free(&e);
+}
+
+void test_editor_backspace_delete(void)
+{
+    Editor e;
+    size_t n = 0;
+    char *s;
+    load_text(&e, "abcd");
+    e.cx = 2;
+    editor_backspace(&e);
+    s = buf_to_string(&e.buf, &n);
+    ASSERT_STREQ("backspace", "acd", s);
+    free(s);
+    editor_delete_forward(&e);
+    s = buf_to_string(&e.buf, &n);
+    ASSERT_STREQ("delete", "ad", s);
+    free(s);
+    editor_free(&e);
+}
+
+void test_editor_backspace_join(void)
+{
+    Editor e;
+    size_t n = 0;
+    char *s;
+    load_text(&e, "ab\ncd");
+    e.cy = 1;
+    e.cx = 0;
+    editor_backspace(&e);
+    s = buf_to_string(&e.buf, &n);
+    ASSERT_STREQ("join", "abcd", s);
+    free(s);
+    ASSERT_EQ_INT("cursor", 2, (int)e.cx);
+    editor_free(&e);
+}
+
+void test_editor_enter(void)
+{
+    Editor e;
+    Event ev;
+    size_t n = 0;
+    char *s;
+    load_text(&e, "hi");
+    e.cx = 1;
+    ev.kind = EV_KEY;
+    ev.key = KEY_ENTER;
+    ev.ch = 0;
+    ev.mods = 0;
+    ev.mx = ev.my = ev.mbtn = ev.mdown = 0;
+    editor_handle_event(&e, &ev);
+    s = buf_to_string(&e.buf, &n);
+    ASSERT_STREQ("split", "h\ni", s);
+    free(s);
+    ASSERT_EQ_INT("y", 1, (int)e.cy);
+    ASSERT_EQ_INT("x", 0, (int)e.cx);
+    editor_free(&e);
+}
+
 void test_editor_word_move(void)
 {
     Editor e;
