@@ -165,12 +165,19 @@ int app_dispatch(App *app, Action act)
         app->focus = FOCUS_DIALOG;
         break;
     case ACT_CUT:
+        editor_cut(&app->editor);
+        break;
     case ACT_COPY:
+        editor_copy(&app->editor);
+        break;
     case ACT_PASTE:
+        editor_paste(&app->editor);
+        break;
     case ACT_SELECT_ALL:
+        editor_select_all(&app->editor);
+        break;
     case ACT_FIND_NEXT:
-        editor_set_message(&app->editor,
-                           "That command arrives in a later version");
+        editor_find_next(&app->editor);
         break;
     case ACT_NONE:
     default:
@@ -188,8 +195,14 @@ static void finish_dialog(App *app)
             }
         } else if (app->dialog.kind == DLG_SAVEAS) {
             editor_save_as(&app->editor, app->dialog.field);
-        } else if (app->dialog.kind == DLG_FIND || app->dialog.kind == DLG_REPLACE) {
-            editor_set_message(&app->editor, "Search arrives in the next version");
+        } else if (app->dialog.kind == DLG_FIND) {
+            memcpy(app->editor.find_text, app->dialog.field,
+                   sizeof(app->editor.find_text) - 1);
+            app->editor.find_text[sizeof(app->editor.find_text) - 1] = '\0';
+            editor_find_next(&app->editor);
+        } else if (app->dialog.kind == DLG_REPLACE) {
+            editor_replace_all(&app->editor, app->dialog.field,
+                               app->dialog.field2);
         }
     }
     dialog_close(&app->dialog);
@@ -201,6 +214,7 @@ static int handle_mouse(App *app, const Event *ev)
     int btn = ev->mbtn;
     int wheel = (btn & 64) != 0;
     if (!ev->mdown && !wheel) {
+        app->dragging = 0;
         return app->editor.quit;
     }
     if (app->dialog.visible) {
@@ -250,7 +264,20 @@ static int handle_mouse(App *app, const Event *ev)
     }
     if (ev->my > 0) {
         int gutter = editor_gutter_width(&app->editor);
+        int extend = ((btn & 32) != 0) || app->dragging;
+        if (!extend) {
+            editor_sel_clear(&app->editor);
+            app->editor.sy = app->editor.cy;
+            app->editor.sx = app->editor.cx;
+        }
         editor_click(&app->editor, ev->my - 1, ev->mx - gutter);
+        if (!extend) {
+            app->editor.sy = app->editor.cy;
+            app->editor.sx = app->editor.cx;
+            app->dragging = 1;
+        } else {
+            app->editor.sel_on = 1;
+        }
     }
     return app->editor.quit;
 }
@@ -283,6 +310,12 @@ int app_handle_event(App *app, const Event *ev)
     if (ev->kind == EV_KEY) {
         if (ev->key == KEY_CHAR && ev->mods == MOD_CTRL && ev->ch == 'o') {
             return app_dispatch(app, ACT_OPEN);
+        }
+        if (ev->key == KEY_CHAR && ev->mods == MOD_CTRL && ev->ch == 'f') {
+            return app_dispatch(app, ACT_FIND);
+        }
+        if (ev->key == KEY_CHAR && ev->mods == MOD_CTRL && ev->ch == 'h') {
+            return app_dispatch(app, ACT_REPLACE);
         }
         editor_handle_event(&app->editor, ev);
     }

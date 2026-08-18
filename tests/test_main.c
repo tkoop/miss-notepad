@@ -34,6 +34,13 @@ void test_editor_backspace_delete(void);
 void test_editor_backspace_join(void);
 void test_editor_enter(void);
 void test_editor_word_move(void);
+void test_search_find(void);
+void test_search_replace_all(void);
+void test_wrap_starts(void);
+void test_editor_cut_copy_paste(void);
+void test_editor_select_all_and_find(void);
+void test_editor_replace_all(void);
+void test_editor_word_wrap_render(void);
 void test_mouse_parse(void);
 void test_dialog_type_and_ok(void);
 void test_dialog_esc_cancel(void);
@@ -105,6 +112,13 @@ int main(void)
         {"editor_backspace_join", test_editor_backspace_join},
         {"editor_enter", test_editor_enter},
         {"editor_word_move", test_editor_word_move},
+        {"search_find", test_search_find},
+        {"search_replace_all", test_search_replace_all},
+        {"wrap_starts", test_wrap_starts},
+        {"editor_cut_copy_paste", test_editor_cut_copy_paste},
+        {"editor_select_all_and_find", test_editor_select_all_and_find},
+        {"editor_replace_all", test_editor_replace_all},
+        {"editor_word_wrap_render", test_editor_word_wrap_render},
         {"mouse_parse", test_mouse_parse},
         {"dialog_type_and_ok", test_dialog_type_and_ok},
         {"dialog_esc_cancel", test_dialog_esc_cancel},

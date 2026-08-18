@@ -5,6 +5,16 @@ All notable changes to Tack are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.0] — 2026-08-18
+
+### Added
+
+- Selection (Shift+arrows, mouse drag)
+- Cut, copy, paste, and Select All (Ctrl+X / C / V / A)
+- Find and Find Next (Ctrl+F, F3) with a pop-up
+- Replace All (Ctrl+H) with a pop-up
+- Word wrap (Format → Word Wrap)
+
 ## [0.8.0] — 2026-08-18
 
 ### Added

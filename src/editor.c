@@ -1,9 +1,11 @@
 #include "tack/editor.h"
 
 #include "tack/fileio.h"
+#include "tack/search.h"
 #include "tack/settings.h"
 #include "tack/utf8.h"
 #include "tack/version.h"
+#include "tack/wrap.h"
 
 #include <ctype.h>
 #include <stdio.h>
@@ -64,6 +66,9 @@ void editor_free(Editor *e)
     undo_free(&e->undo);
     free(e->filename);
     e->filename = NULL;
+    free(e->clip);
+    e->clip = NULL;
+    e->clip_len = 0;
 }
 
 static int set_filename(Editor *e, const char *path)
@@ -288,6 +293,11 @@ void editor_scroll_into_view(Editor *e)
     int col = editor_cursor_col(e);
     int rows = e->view_rows;
     int cols = editor_text_cols(e);
+    if (e->word_wrap) {
+        e->col_off = 0;
+        col = 0;
+        cols = 9999;
+    }
 
     if (e->cy < e->row_off) {
         e->row_off = e->cy;
@@ -550,10 +560,180 @@ static int apply_delete_span(Editor *e, size_t r1, size_t c1, size_t r2,
     return 0;
 }
 
+void editor_sel_clear(Editor *e)
+{
+    e->sel_on = 0;
+}
+
+static void sel_bounds(const Editor *e, size_t *r1, size_t *c1, size_t *r2,
+                       size_t *c2)
+{
+    *r1 = e->sy;
+    *c1 = e->sx;
+    *r2 = e->cy;
+    *c2 = e->cx;
+    if (*r1 > *r2 || (*r1 == *r2 && *c1 > *c2)) {
+        size_t tr = *r1, tc = *c1;
+        *r1 = *r2;
+        *c1 = *c2;
+        *r2 = tr;
+        *c2 = tc;
+    }
+}
+
+int editor_delete_selection(Editor *e)
+{
+    size_t r1, c1, r2, c2;
+    if (!e->sel_on) {
+        return 0;
+    }
+    sel_bounds(e, &r1, &c1, &r2, &c2);
+    e->sel_on = 0;
+    return apply_delete_span(e, r1, c1, r2, c2, 1);
+}
+
+static int clip_set(Editor *e, const char *s, size_t n)
+{
+    char *p = malloc(n + 1);
+    if (p == NULL) {
+        return -1;
+    }
+    if (n > 0 && s != NULL) {
+        memcpy(p, s, n);
+    }
+    p[n] = '\0';
+    free(e->clip);
+    e->clip = p;
+    e->clip_len = n;
+    return 0;
+}
+
+int editor_copy(Editor *e)
+{
+    size_t r1, c1, r2, c2, n = 0;
+    char *s;
+    if (!e->sel_on) {
+        return 0;
+    }
+    sel_bounds(e, &r1, &c1, &r2, &c2);
+    s = buf_copy_span(&e->buf, r1, c1, r2, c2, &n);
+    if (s == NULL) {
+        return -1;
+    }
+    if (clip_set(e, s, n) != 0) {
+        free(s);
+        return -1;
+    }
+    free(s);
+    editor_set_message(e, "Copied");
+    return 0;
+}
+
+int editor_cut(Editor *e)
+{
+    if (editor_copy(e) != 0) {
+        return -1;
+    }
+    return editor_delete_selection(e);
+}
+
+int editor_paste(Editor *e)
+{
+    if (e->clip == NULL || e->clip_len == 0) {
+        return 0;
+    }
+    if (e->sel_on) {
+        editor_delete_selection(e);
+    }
+    return editor_insert_text(e, e->clip, e->clip_len);
+}
+
+int editor_select_all(Editor *e)
+{
+    e->sel_on = 1;
+    e->sy = 0;
+    e->sx = 0;
+    e->cy = buf_line_count(&e->buf) - 1;
+    e->cx = buf_line_len(&e->buf, e->cy);
+    remember_goal(e);
+    editor_scroll_into_view(e);
+    return 0;
+}
+
+int editor_find_next(Editor *e)
+{
+    size_t row, col;
+    size_t start_col = e->cx;
+    if (e->find_text[0] == '\0') {
+        editor_set_message(e, "Nothing to find");
+        return 0;
+    }
+    if (start_col < buf_line_len(&e->buf, e->cy)) {
+        const char *line = buf_line(&e->buf, e->cy, NULL);
+        start_col = utf8_next(line, buf_line_len(&e->buf, e->cy), e->cx);
+    } else if (e->cy + 1 < buf_line_count(&e->buf)) {
+        if (search_find(&e->buf, e->find_text, e->cy + 1, 0, &row, &col)) {
+            e->cy = row;
+            e->cx = col;
+            e->sel_on = 1;
+            e->sy = row;
+            e->sx = col;
+            e->cx = col + strlen(e->find_text);
+            if (e->cx > buf_line_len(&e->buf, e->cy)) {
+                e->cx = buf_line_len(&e->buf, e->cy);
+            }
+            remember_goal(e);
+            editor_scroll_into_view(e);
+            return 1;
+        }
+    }
+    if (!search_find(&e->buf, e->find_text, e->cy, start_col, &row, &col)) {
+        editor_set_message(e, "Not found");
+        return 0;
+    }
+    e->cy = row;
+    e->sy = row;
+    e->sx = col;
+    e->cx = col + strlen(e->find_text);
+    if (e->cx > buf_line_len(&e->buf, e->cy)) {
+        e->cx = buf_line_len(&e->buf, e->cy);
+    }
+    e->sel_on = 1;
+    remember_goal(e);
+    editor_scroll_into_view(e);
+    editor_set_message(e, "Found");
+    return 1;
+}
+
+int editor_replace_all(Editor *e, const char *needle, const char *repl)
+{
+    int n = 0;
+    if (needle && needle[0]) {
+        snprintf(e->find_text, sizeof(e->find_text), "%s", needle);
+    }
+    if (repl) {
+        snprintf(e->replace_text, sizeof(e->replace_text), "%s", repl);
+    }
+    if (search_replace_all(&e->buf, e->find_text, e->replace_text, &n) != 0) {
+        return -1;
+    }
+    e->dirty = n > 0;
+    e->sel_on = 0;
+    {
+        char msg[64];
+        snprintf(msg, sizeof(msg), "Replaced %d", n);
+        editor_set_message(e, msg);
+    }
+    return 0;
+}
+
 int editor_insert_text(Editor *e, const char *s, size_t n)
 {
     if (s == NULL || n == 0) {
         return 0;
+    }
+    if (e->sel_on) {
+        editor_delete_selection(e);
     }
     return apply_insert(e, e->cy, e->cx, s, n, 1);
 }
@@ -677,6 +857,42 @@ int editor_handle_event(Editor *e, const Event *ev)
         editor_new(e);
         return e->quit;
     }
+    if (ev->key == KEY_CHAR && ev->mods == MOD_CTRL && ev->ch == 'x') {
+        editor_cut(e);
+        return e->quit;
+    }
+    if (ev->key == KEY_CHAR && ev->mods == MOD_CTRL && ev->ch == 'c') {
+        editor_copy(e);
+        return e->quit;
+    }
+    if (ev->key == KEY_CHAR && ev->mods == MOD_CTRL && ev->ch == 'v') {
+        editor_paste(e);
+        return e->quit;
+    }
+    if (ev->key == KEY_CHAR && ev->mods == MOD_CTRL && ev->ch == 'a') {
+        editor_select_all(e);
+        return e->quit;
+    }
+    if (ev->key == KEY_F3) {
+        editor_find_next(e);
+        return e->quit;
+    }
+    {
+        int extend = (ev->mods & MOD_SHIFT) != 0;
+        if (ev->key == KEY_LEFT || ev->key == KEY_RIGHT || ev->key == KEY_UP ||
+            ev->key == KEY_DOWN || ev->key == KEY_HOME || ev->key == KEY_END ||
+            ev->key == KEY_PGUP || ev->key == KEY_PGDN) {
+            if (extend) {
+                if (!e->sel_on) {
+                    e->sel_on = 1;
+                    e->sx = e->cx;
+                    e->sy = e->cy;
+                }
+            } else {
+                e->sel_on = 0;
+            }
+        }
+    }
     switch (ev->key) {
     case KEY_LEFT:
         if (ev->mods & MOD_CTRL) {
@@ -722,10 +938,18 @@ int editor_handle_event(Editor *e, const Event *ev)
         editor_newline(e);
         break;
     case KEY_BACKSPACE:
-        editor_backspace(e);
+        if (e->sel_on) {
+            editor_delete_selection(e);
+        } else {
+            editor_backspace(e);
+        }
         break;
     case KEY_DELETE:
-        editor_delete_forward(e);
+        if (e->sel_on) {
+            editor_delete_selection(e);
+        } else {
+            editor_delete_forward(e);
+        }
         break;
     case KEY_TAB:
         editor_insert_char(e, (uint32_t)'\t');
@@ -768,33 +992,56 @@ static void render_gutter_line(Screen *s, int y, int gutter, size_t lineno)
     }
 }
 
+static int in_sel(const Editor *e, size_t row, size_t col)
+{
+    size_t r1, c1, r2, c2;
+    if (!e->sel_on) {
+        return 0;
+    }
+    sel_bounds(e, &r1, &c1, &r2, &c2);
+    if (row < r1 || row > r2) {
+        return 0;
+    }
+    if (row == r1 && col < c1) {
+        return 0;
+    }
+    if (row == r2 && col >= c2) {
+        return 0;
+    }
+    return 1;
+}
+
 static void render_text(const Editor *e, Screen *s, int y0, int x0, int h, int w)
 {
-    int r;
-    for (r = 0; r < h; r++) {
-        size_t row = e->row_off + (size_t)r;
+    int r = 0;
+    size_t brow = e->row_off;
+    size_t nlines = buf_line_count(&e->buf);
+
+    while (r < h) {
         size_t len = 0;
         const char *line;
-        size_t i;
+        size_t i = 0;
         int x = 0;
-        int skip = (int)e->col_off;
+        int skip = e->word_wrap ? 0 : (int)e->col_off;
+        int first_vis = 1;
 
         screen_fill(s, y0 + r, x0, w, 1, (uint32_t)' ', STYLE_NORMAL);
-        if (row >= buf_line_count(&e->buf)) {
+        if (brow >= nlines) {
             if (e->show_linenum && x0 > 0) {
                 screen_fill(s, y0 + r, 0, x0, 1, (uint32_t)' ', STYLE_GUTTER);
             }
+            r++;
             continue;
         }
         if (e->show_linenum && x0 > 0) {
-            render_gutter_line(s, y0 + r, x0, row + 1);
+            render_gutter_line(s, y0 + r, x0, brow + 1);
         }
-        line = buf_line(&e->buf, row, &len);
-        i = 0;
-        while (i < len && x < w) {
+        line = buf_line(&e->buf, brow, &len);
+        while (i < len && r < h) {
             uint32_t cp = 0;
             size_t n = 1;
             int cw;
+            unsigned char st;
             if (utf8_decode(line, len, i, &cp, &n) != 0) {
                 cp = (unsigned char)line[i];
                 n = 1;
@@ -819,21 +1066,39 @@ static void render_text(const Editor *e, Screen *s, int y0, int x0, int h, int w
                 skip = 0;
                 cp = (uint32_t)' ';
             }
+            if (e->word_wrap && x + cw > w && x > 0) {
+                r++;
+                first_vis = 0;
+                x = 0;
+                if (r >= h) {
+                    break;
+                }
+                screen_fill(s, y0 + r, x0, w, 1, (uint32_t)' ', STYLE_NORMAL);
+                if (e->show_linenum && x0 > 0) {
+                    screen_fill(s, y0 + r, 0, x0, 1, (uint32_t)' ', STYLE_GUTTER);
+                    screen_put(s, y0 + r, x0 - 1, (uint32_t)'|', STYLE_GUTTER);
+                }
+                continue;
+            }
+            st = in_sel(e, brow, i) ? STYLE_SELECT : STYLE_NORMAL;
             if (cp == '\t') {
                 int k;
                 for (k = 0; k < cw && x < w; k++) {
-                    screen_put(s, y0 + r, x0 + x, (uint32_t)' ', STYLE_NORMAL);
+                    screen_put(s, y0 + r, x0 + x, (uint32_t)' ', st);
                     x++;
                 }
             } else {
                 if (x + cw > w) {
                     break;
                 }
-                screen_put(s, y0 + r, x0 + x, cp, STYLE_NORMAL);
+                screen_put(s, y0 + r, x0 + x, cp, st);
                 x += cw;
             }
             i += n;
+            (void)first_vis;
         }
+        r++;
+        brow++;
     }
 }
 

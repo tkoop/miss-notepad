@@ -15,6 +15,7 @@ typedef struct {
     Dialog dialog;
     Settings settings;
     AppFocus focus;
+    int dragging;
     char config_path[512];
 } App;
 

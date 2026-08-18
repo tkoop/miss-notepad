@@ -42,6 +42,13 @@ typedef struct {
     int quit;
     char *filename;
     char status_msg[160];
+    int sel_on;
+    size_t sx;
+    size_t sy;
+    char *clip;
+    size_t clip_len;
+    char find_text[256];
+    char replace_text[256];
     UndoStack undo;
 } Editor;
 
@@ -81,5 +88,13 @@ void editor_click(Editor *e, int text_y, int text_x);
 void editor_toggle_line_numbers(Editor *e);
 int editor_gutter_width(const Editor *e);
 int editor_text_cols(const Editor *e);
+void editor_sel_clear(Editor *e);
+int editor_delete_selection(Editor *e);
+int editor_cut(Editor *e);
+int editor_copy(Editor *e);
+int editor_paste(Editor *e);
+int editor_select_all(Editor *e);
+int editor_find_next(Editor *e);
+int editor_replace_all(Editor *e, const char *needle, const char *repl);
 
 #endif
