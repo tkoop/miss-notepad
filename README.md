@@ -7,8 +7,8 @@ anyone who has used Notepad, while running entirely in the terminal (a TUI,
 not a GUI) — like nano, but with a Notepad-style menu, pop-up dialogs, and
 mouse support.
 
-This is **version 0.4.0**: a full-screen editor you can type in, with undo.
-Menus, save dialogs, and mouse support arrive in later versions.
+This is **version 0.5.0**: edit, undo, open a file, and save it.
+Menus, dialogs, and mouse support arrive in later versions.
 
 ## Build
 
@@ -28,7 +28,12 @@ bin/tack --version
 ```
 
 Tack takes over the whole terminal. Type to insert text. Move with the arrow
-keys, Home/End, and Page Up/Down. Ctrl+Z undoes, Ctrl+Y redoes, Ctrl+Q quits.
+keys, Home/End, and Page Up/Down.
+
+- **Ctrl+S** save (needs a file name — open with `tack FILE`)
+- **Ctrl+N** new document
+- **Ctrl+Z** undo, **Ctrl+Y** redo
+- **Ctrl+Q** quit
 
 ## Tests
 

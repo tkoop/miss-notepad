@@ -37,6 +37,7 @@ typedef struct {
     int dirty;
     int quit;
     char *filename;
+    char status_msg[160];
     UndoStack undo;
 } Editor;
 
@@ -67,5 +68,9 @@ int editor_backspace(Editor *e);
 int editor_delete_forward(Editor *e);
 int editor_undo(Editor *e);
 int editor_redo(Editor *e);
+int editor_new(Editor *e);
+int editor_save(Editor *e);
+int editor_save_as(Editor *e, const char *path);
+void editor_set_message(Editor *e, const char *msg);
 
 #endif

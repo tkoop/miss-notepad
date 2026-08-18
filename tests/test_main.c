@@ -36,6 +36,11 @@ void test_editor_enter(void);
 void test_editor_word_move(void);
 void test_file_read_all(void);
 void test_file_read_missing(void);
+void test_file_write_and_read(void);
+void test_editor_save_roundtrip(void);
+void test_editor_save_untitled(void);
+void test_editor_new(void);
+void test_editor_ctrl_s(void);
 void test_cli_no_args(void);
 void test_cli_filename(void);
 void test_cli_help(void);
@@ -82,6 +87,11 @@ int main(void)
         {"editor_word_move", test_editor_word_move},
         {"file_read_all", test_file_read_all},
         {"file_read_missing", test_file_read_missing},
+        {"file_write_and_read", test_file_write_and_read},
+        {"editor_save_roundtrip", test_editor_save_roundtrip},
+        {"editor_save_untitled", test_editor_save_untitled},
+        {"editor_new", test_editor_new},
+        {"editor_ctrl_s", test_editor_ctrl_s},
         {"cli_no_args", test_cli_no_args},
         {"cli_filename", test_cli_filename},
         {"cli_help", test_cli_help},

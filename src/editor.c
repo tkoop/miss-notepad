@@ -21,6 +21,7 @@ int editor_init(Editor *e)
     e->view_rows = 24;
     e->view_cols = 80;
     e->filename = NULL;
+    e->status_msg[0] = '\0';
     return buf_init(&e->buf);
 }
 
@@ -94,6 +95,8 @@ int editor_load_path(Editor *e, const char *path)
         e->cx = 0;
         e->cy = 0;
         e->dirty = 0;
+        undo_clear_from(&e->undo, 0);
+        e->undo.index = 0;
         return 0;
     }
     if (rc != 0) {
@@ -110,7 +113,75 @@ int editor_load_path(Editor *e, const char *path)
     e->col_off = 0;
     e->goal_col = 0;
     e->dirty = 0;
+    undo_clear_from(&e->undo, 0);
+    e->undo.index = 0;
+    editor_set_message(e, NULL);
     return 0;
+}
+
+void editor_set_message(Editor *e, const char *msg)
+{
+    if (msg == NULL) {
+        e->status_msg[0] = '\0';
+        return;
+    }
+    snprintf(e->status_msg, sizeof(e->status_msg), "%s", msg);
+}
+
+int editor_new(Editor *e)
+{
+    if (buf_clear(&e->buf) != 0) {
+        return -1;
+    }
+    free(e->filename);
+    e->filename = NULL;
+    e->cx = 0;
+    e->cy = 0;
+    e->row_off = 0;
+    e->col_off = 0;
+    e->goal_col = 0;
+    e->dirty = 0;
+    e->quit = 0;
+    undo_clear_from(&e->undo, 0);
+    e->undo.index = 0;
+    editor_set_message(e, "New document");
+    return 0;
+}
+
+int editor_save_as(Editor *e, const char *path)
+{
+    size_t n = 0;
+    char *data;
+    if (path == NULL) {
+        editor_set_message(e, "No file name");
+        return -1;
+    }
+    data = buf_to_string(&e->buf, &n);
+    if (data == NULL) {
+        editor_set_message(e, "Out of memory");
+        return -1;
+    }
+    if (file_write_all(path, data, n) != 0) {
+        free(data);
+        editor_set_message(e, "Save failed");
+        return -1;
+    }
+    free(data);
+    if (set_filename(e, path) != 0) {
+        return -1;
+    }
+    e->dirty = 0;
+    editor_set_message(e, "Saved");
+    return 0;
+}
+
+int editor_save(Editor *e)
+{
+    if (e->filename == NULL) {
+        editor_set_message(e, "No file name — reopen with: tack FILE");
+        return -1;
+    }
+    return editor_save_as(e, e->filename);
 }
 
 void editor_set_view(Editor *e, int rows, int cols)
@@ -512,6 +583,7 @@ int editor_handle_event(Editor *e, const Event *ev)
     if (ev == NULL || ev->kind != EV_KEY) {
         return e->quit;
     }
+    e->status_msg[0] = '\0';
     if (ev->key == KEY_CHAR && ev->mods == MOD_CTRL && ev->ch == 'q') {
         e->quit = 1;
         return 1;
@@ -522,6 +594,14 @@ int editor_handle_event(Editor *e, const Event *ev)
     }
     if (ev->key == KEY_CHAR && ev->mods == MOD_CTRL && ev->ch == 'y') {
         editor_redo(e);
+        return e->quit;
+    }
+    if (ev->key == KEY_CHAR && ev->mods == MOD_CTRL && ev->ch == 's') {
+        editor_save(e);
+        return e->quit;
+    }
+    if (ev->key == KEY_CHAR && ev->mods == MOD_CTRL && ev->ch == 'n') {
+        editor_new(e);
         return e->quit;
     }
     switch (ev->key) {
@@ -670,8 +750,13 @@ void editor_render(const Editor *e, Screen *s)
     screen_fill(s, 0, 0, s->cols, 1, (uint32_t)' ', STYLE_TITLE);
     screen_puts(s, 0, 0, title, STYLE_TITLE);
 
-    snprintf(status, sizeof(status), " Ln %d, Col %d    Ctrl+Z undo  Ctrl+Q quit",
-             (int)e->cy + 1, editor_cursor_col(e) + 1);
+    if (e->status_msg[0] != '\0') {
+        snprintf(status, sizeof(status), " %s", e->status_msg);
+    } else {
+        snprintf(status, sizeof(status),
+                 " Ln %d, Col %d    Ctrl+S save  Ctrl+Z undo  Ctrl+Q quit",
+                 (int)e->cy + 1, editor_cursor_col(e) + 1);
+    }
     screen_fill(s, s->rows - 1, 0, s->cols, 1, (uint32_t)' ', STYLE_STATUS);
     screen_puts(s, s->rows - 1, 0, status, STYLE_STATUS);
 

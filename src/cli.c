@@ -48,7 +48,7 @@ void tack_cli_print_help(void)
     printf("(Microsoft Notepad for the Linux terminal).\n");
     printf("\n");
     printf("In the editor: type to insert, arrow keys move,\n");
-    printf("Ctrl+Z undo, Ctrl+Y redo, Ctrl+Q quit.\n");
+    printf("Ctrl+S save, Ctrl+N new, Ctrl+Z undo, Ctrl+Q quit.\n");
 }
 
 void tack_cli_print_version(void)

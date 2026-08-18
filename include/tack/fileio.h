@@ -5,5 +5,6 @@
 
 /* 0 = ok, 1 = not found, -1 = error (errno set). */
 int file_read_all(const char *path, char **data, size_t *len);
+int file_write_all(const char *path, const char *data, size_t len);
 
 #endif

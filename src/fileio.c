@@ -47,3 +47,29 @@ int file_read_all(const char *path, char **data, size_t *len)
     *len = nread;
     return 0;
 }
+
+int file_write_all(const char *path, const char *data, size_t len)
+{
+    FILE *fp;
+    size_t n;
+
+    if (path == NULL) {
+        errno = EINVAL;
+        return -1;
+    }
+    fp = fopen(path, "wb");
+    if (fp == NULL) {
+        return -1;
+    }
+    if (len > 0 && data != NULL) {
+        n = fwrite(data, 1, len, fp);
+        if (n != len) {
+            fclose(fp);
+            return -1;
+        }
+    }
+    if (fclose(fp) != 0) {
+        return -1;
+    }
+    return 0;
+}
