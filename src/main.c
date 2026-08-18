@@ -1,6 +1,66 @@
 #include "tack/cli.h"
+#include "tack/editor.h"
+#include "tack/term.h"
 
 #include <stdio.h>
+
+static int run_editor(const char *filename)
+{
+    Editor ed;
+    Screen scr;
+    int rows = 24;
+    int cols = 80;
+
+    if (!term_available()) {
+        fprintf(stderr, "tack: a terminal is required\n");
+        return 1;
+    }
+    if (editor_init(&ed) != 0) {
+        fprintf(stderr, "tack: out of memory\n");
+        return 1;
+    }
+    if (filename != NULL) {
+        if (editor_load_path(&ed, filename) != 0) {
+            fprintf(stderr, "tack: cannot open '%s'\n", filename);
+            editor_free(&ed);
+            return 1;
+        }
+    }
+    if (term_init() != 0) {
+        fprintf(stderr, "tack: failed to initialize the terminal\n");
+        editor_free(&ed);
+        return 1;
+    }
+    screen_init(&scr);
+    term_size(&rows, &cols);
+    if (screen_resize(&scr, rows, cols) != 0) {
+        term_shutdown();
+        editor_free(&ed);
+        return 1;
+    }
+    editor_set_view(&ed, rows > 2 ? rows - 2 : 1, cols);
+
+    while (!ed.quit) {
+        Event ev;
+        editor_render(&ed, &scr);
+        term_flush(&scr);
+        if (term_read_event(&ev)) {
+            if (ev.kind == EV_RESIZE) {
+                if (term_size(&rows, &cols) == 0) {
+                    screen_resize(&scr, rows, cols);
+                    editor_set_view(&ed, rows > 2 ? rows - 2 : 1, cols);
+                }
+            } else {
+                editor_handle_event(&ed, &ev);
+            }
+        }
+    }
+
+    term_shutdown();
+    screen_free(&scr);
+    editor_free(&ed);
+    return 0;
+}
 
 int main(int argc, char **argv)
 {
@@ -20,8 +80,5 @@ int main(int argc, char **argv)
         return 2;
     }
 
-    printf("Tack %s — full-screen editor coming in a later version.\n",
-           cli.filename ? cli.filename : "(untitled)");
-    (void)cli;
-    return 0;
+    return run_editor(cli.filename);
 }

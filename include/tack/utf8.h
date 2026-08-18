@@ -13,5 +13,6 @@ int utf8_codepoint_width(uint32_t cp);
 size_t utf8_display_width(const char *s, size_t len, size_t bytes, int tabstop);
 size_t utf8_col_of(const char *s, size_t len, size_t byte_i, int tabstop);
 size_t utf8_byte_at_col(const char *s, size_t len, size_t col, int tabstop);
+int utf8_encode(uint32_t cp, char out[4]);
 
 #endif

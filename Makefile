@@ -53,6 +53,7 @@ test: $(TEST_BIN) $(APP)
 	$(APP) -v | grep -q "Tack "
 	$(APP) -h | grep -q "Usage: tack"
 	! $(APP) --bogus >/dev/null 2>&1
+	! $(APP) </dev/null >/dev/null 2>&1
 	@echo "All tests passed."
 
 clean:

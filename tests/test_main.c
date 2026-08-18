@@ -13,6 +13,24 @@ void test_buffer_split_join(void);
 void test_buffer_delete(void);
 void test_buffer_load_replace(void);
 void test_buffer_split_at_ends(void);
+void test_keys_ctrl_q(void);
+void test_keys_arrows(void);
+void test_keys_ctrl_arrow(void);
+void test_keys_home_end_delete(void);
+void test_keys_incomplete_esc(void);
+void test_keys_utf8_char(void);
+void test_screen_put_get(void);
+void test_screen_clips(void);
+void test_editor_arrows(void);
+void test_editor_home_end(void);
+void test_editor_goal_column(void);
+void test_editor_ctrl_q(void);
+void test_editor_handle_arrows(void);
+void test_editor_scroll(void);
+void test_editor_render(void);
+void test_editor_word_move(void);
+void test_file_read_all(void);
+void test_file_read_missing(void);
 void test_cli_no_args(void);
 void test_cli_filename(void);
 void test_cli_help(void);
@@ -36,6 +54,24 @@ int main(void)
         {"buffer_delete", test_buffer_delete},
         {"buffer_load_replace", test_buffer_load_replace},
         {"buffer_split_at_ends", test_buffer_split_at_ends},
+        {"keys_ctrl_q", test_keys_ctrl_q},
+        {"keys_arrows", test_keys_arrows},
+        {"keys_ctrl_arrow", test_keys_ctrl_arrow},
+        {"keys_home_end_delete", test_keys_home_end_delete},
+        {"keys_incomplete_esc", test_keys_incomplete_esc},
+        {"keys_utf8_char", test_keys_utf8_char},
+        {"screen_put_get", test_screen_put_get},
+        {"screen_clips", test_screen_clips},
+        {"editor_arrows", test_editor_arrows},
+        {"editor_home_end", test_editor_home_end},
+        {"editor_goal_column", test_editor_goal_column},
+        {"editor_ctrl_q", test_editor_ctrl_q},
+        {"editor_handle_arrows", test_editor_handle_arrows},
+        {"editor_scroll", test_editor_scroll},
+        {"editor_render", test_editor_render},
+        {"editor_word_move", test_editor_word_move},
+        {"file_read_all", test_file_read_all},
+        {"file_read_missing", test_file_read_missing},
         {"cli_no_args", test_cli_no_args},
         {"cli_filename", test_cli_filename},
         {"cli_help", test_cli_help},
