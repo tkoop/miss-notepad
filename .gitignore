@@ -1,0 +1,9 @@
+*.o
+*.a
+*.d
+/build/
+/tests/run_tests
+*.tmp
+*~
+.cache/
+compile_commands.json
