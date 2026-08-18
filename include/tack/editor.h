@@ -96,5 +96,6 @@ int editor_paste(Editor *e);
 int editor_select_all(Editor *e);
 int editor_find_next(Editor *e);
 int editor_replace_all(Editor *e, const char *needle, const char *repl);
+int editor_kill_line(Editor *e);
 
 #endif

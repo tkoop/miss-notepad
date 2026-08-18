@@ -5,6 +5,15 @@ All notable changes to Tack are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.0] — 2026-08-18
+
+### Added
+
+- Key-binding themes: Notepad (default), nano, vi, and Emacs
+- vi colon commands in a pop-up (`:w`, `:q`, `:wq`, `:q!`)
+- Theme-specific help text
+- Complete README (use, install, compile, tests, key maps)
+
 ## [0.9.0] — 2026-08-18
 
 ### Added

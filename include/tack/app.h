@@ -4,6 +4,7 @@
 #include "tack/action.h"
 #include "tack/dialog.h"
 #include "tack/editor.h"
+#include "tack/keybind.h"
 #include "tack/menu.h"
 #include "tack/settings.h"
 
@@ -16,6 +17,7 @@ typedef struct {
     Settings settings;
     AppFocus focus;
     int dragging;
+    KeybindState keys;
     char config_path[512];
 } App;
 

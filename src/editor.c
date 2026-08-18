@@ -727,6 +727,21 @@ int editor_replace_all(Editor *e, const char *needle, const char *repl)
     return 0;
 }
 
+int editor_kill_line(Editor *e)
+{
+    size_t len = buf_line_len(&e->buf, e->cy);
+    if (e->sel_on) {
+        return editor_cut(e);
+    }
+    if (e->cx < len) {
+        return apply_delete_span(e, e->cy, e->cx, e->cy, len, 1);
+    }
+    if (e->cy + 1 < buf_line_count(&e->buf)) {
+        return apply_delete_span(e, e->cy, e->cx, e->cy + 1, 0, 1);
+    }
+    return 0;
+}
+
 int editor_insert_text(Editor *e, const char *s, size_t n)
 {
     if (s == NULL || n == 0) {

@@ -34,6 +34,12 @@ void test_editor_backspace_delete(void);
 void test_editor_backspace_join(void);
 void test_editor_enter(void);
 void test_editor_word_move(void);
+void test_keybind_notepad(void);
+void test_keybind_nano(void);
+void test_keybind_emacs_prefix(void);
+void test_keybind_vi_modes(void);
+void test_app_vi_colon_quit(void);
+void test_keybind_help_strings(void);
 void test_search_find(void);
 void test_search_replace_all(void);
 void test_wrap_starts(void);
@@ -112,6 +118,12 @@ int main(void)
         {"editor_backspace_join", test_editor_backspace_join},
         {"editor_enter", test_editor_enter},
         {"editor_word_move", test_editor_word_move},
+        {"keybind_notepad", test_keybind_notepad},
+        {"keybind_nano", test_keybind_nano},
+        {"keybind_emacs_prefix", test_keybind_emacs_prefix},
+        {"keybind_vi_modes", test_keybind_vi_modes},
+        {"app_vi_colon_quit", test_app_vi_colon_quit},
+        {"keybind_help_strings", test_keybind_help_strings},
         {"search_find", test_search_find},
         {"search_replace_all", test_search_replace_all},
         {"wrap_starts", test_wrap_starts},

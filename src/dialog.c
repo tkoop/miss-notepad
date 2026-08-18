@@ -72,6 +72,11 @@ void dialog_show_confirm(Dialog *d, const char *title, const char *prompt)
     setup(d, DLG_CONFIRM, title ? title : "Confirm", prompt, 0, 0);
 }
 
+void dialog_show_vicmd(Dialog *d)
+{
+    setup(d, DLG_VICMD, "vi", ":", 1, 0);
+}
+
 static void insert_char(Dialog *d, uint32_t cp)
 {
     char u[4];

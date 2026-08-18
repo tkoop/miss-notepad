@@ -2,15 +2,34 @@
 
 **Microsoft Notepad for the Linux command line.**
 
-Tack is a full-screen terminal text editor. It is meant to feel familiar to
-anyone who has used Notepad, while running entirely in the terminal (a TUI,
-not a GUI) — like nano, but with a Notepad-style menu, pop-up dialogs, and
-mouse support.
+Tack is a full-screen terminal text editor. It is meant to feel familiar if you
+know Notepad, while running entirely in the terminal (a TUI, not a GUI) — like
+nano, but with a Notepad-style menu bar, mouse support, and pop-up dialogs
+instead of a command line at the bottom.
 
-This is **version 0.9.0**: a full Notepad-like editor (selection, clipboard,
-search/replace, word wrap). Key-binding themes arrive in 1.0.
+The menuing style is inspired by [Links](http://links.twibright.com/), the
+text-mode web browser: click or use Alt+letter to open dropdowns drawn in
+ASCII over the document.
 
-## Build
+## Features
+
+- Full-screen editor (takes over the terminal, like nano)
+- Notepad-style menus: **File**, **Edit**, **Format**, **View**, **Help**
+- Mouse: click to move the caret, open menus, press dialog buttons, drag to
+  select, scroll with the wheel
+- Pop-up dialogs (Open, Save As, Find, Replace, About) with fields and buttons
+- Line numbers on by default (toggle under **View**)
+- Word wrap (**Format → Word Wrap**)
+- Cut, copy, paste, select all, undo/redo
+- Search and replace
+- Key-binding themes: **Notepad** (default), **nano**, **vi**, **Emacs**
+- Settings saved to `~/.config/tack/config`
+
+## Build / compile
+
+You need a C11 compiler (`gcc` or `clang`), `make`, and a POSIX system. There
+are no extra libraries to install — Tack talks to the terminal with termios
+and ANSI escapes.
 
 ```sh
 make
@@ -18,27 +37,135 @@ make
 
 The executable is written to `bin/tack`.
 
+Debug build:
+
+```sh
+make CFLAGS="-std=c11 -Wall -Wextra -Werror -pedantic -g -O0"
+```
+
+Clean:
+
+```sh
+make clean
+```
+
+## Install
+
+Copy the binary somewhere on your `PATH`:
+
+```sh
+make
+sudo cp bin/tack /usr/local/bin/tack
+```
+
+Or keep it local and run `bin/tack`.
+
 ## Run
 
 ```sh
-bin/tack
-bin/tack notes.txt
-bin/tack --help
-bin/tack --version
+tack
+tack notes.txt
+tack --help
+tack --version
 ```
 
-Tack takes over the whole terminal. Type to insert text. Move with the arrow
-keys, Home/End, and Page Up/Down.
+Tack needs a real terminal (not a pipe). It uses the alternate screen buffer
+and restores your shell when you quit.
 
-- Use the **mouse** to click the menu bar, dialog buttons, and text
-- **F10** or **Alt+F / Alt+E / Alt+O / Alt+V / Alt+H** open menus
-- **Ctrl+O** Open, **Ctrl+S** save, **File → Save As**
-- **Ctrl+X / C / V** cut/copy/paste, **Ctrl+A** select all
-- **Ctrl+F** find, **F3** find next, **Ctrl+H** replace
-- **Format → Word Wrap** toggles wrapping
-- **Ctrl+N** new document
-- **Ctrl+Z** undo, **Ctrl+Y** redo
-- **Ctrl+Q** quit
+## How to use
+
+### Mouse
+
+Click the menu names on the top row. Click inside a dropdown to choose an
+item. Click in the text to move the caret. Drag to select. Use the scroll
+wheel to move. Dialogs have **[ OK ]** and **[ Cancel ]** buttons you can
+click.
+
+### Menus (Notepad-style)
+
+| Menu   | Items |
+|--------|--------|
+| File   | New, Open…, Save, Save As…, Exit |
+| Edit   | Undo, Redo, Cut, Copy, Paste, Delete, Select All, Find…, Find Next, Replace… |
+| Format | Word Wrap |
+| View   | Line Numbers; Notepad / nano / vi / Emacs keys |
+| Help   | Keyboard shortcuts, About Tack |
+
+Open a menu with **F10**, **Alt+F / E / O / V / H**, or the mouse. Move with
+the arrows, activate with Enter, leave with Esc.
+
+### Notepad keys (default)
+
+| Key | Action |
+|-----|--------|
+| Ctrl+N | New |
+| Ctrl+O | Open |
+| Ctrl+S | Save |
+| Ctrl+Q | Exit |
+| Ctrl+Z / Y | Undo / Redo |
+| Ctrl+X / C / V | Cut / Copy / Paste |
+| Ctrl+A | Select All |
+| Ctrl+F | Find |
+| F3 | Find Next |
+| Ctrl+H | Replace |
+| Shift+arrows | Select |
+| Arrows, Home, End, Page Up/Down | Move |
+
+### nano keys
+
+| Key | Action |
+|-----|--------|
+| Ctrl+O | Save |
+| Ctrl+X | Exit |
+| Ctrl+W | Find |
+| Ctrl+\ | Replace |
+| Ctrl+K | Cut to end of line |
+| Ctrl+U | Paste |
+| Ctrl+G | Help |
+
+### vi keys
+
+Tack starts vi theme in **normal** mode (`-- NORMAL --` on the status line).
+
+| Key | Action |
+|-----|--------|
+| i | Insert mode |
+| Esc | Normal mode |
+| h j k l | Move |
+| x | Delete character |
+| p | Paste |
+| u | Undo |
+| / | Find |
+| n | Find next |
+| :w :q :wq :q! | Save / quit (pop-up, not a bottom command line) |
+
+### Emacs keys
+
+| Key | Action |
+|-----|--------|
+| C-x C-s | Save |
+| C-x C-c | Quit |
+| C-x C-f | Open |
+| C-x C-w | Save As |
+| C-s | Find |
+| C-y | Paste |
+| C-w | Cut |
+| C-k | Kill to end of line |
+| C-a / C-e | Beginning / end of line |
+| C-f / C-b / C-n / C-p | Move |
+
+### Settings
+
+Tack reads and writes `~/.config/tack/config`:
+
+```
+show_linenum=1
+word_wrap=0
+tabstop=4
+key_theme=notepad
+```
+
+`key_theme` may be `notepad`, `nano`, `vi`, or `emacs`.
 
 ## Tests
 
@@ -46,8 +173,22 @@ keys, Home/End, and Page Up/Down.
 make test
 ```
 
-## Requirements
+This builds the editor, runs the unit-test suite (buffer, UTF-8, keys, screen,
+editor, menus, dialogs, search, wrap, key bindings, files), and a few CLI
+checks. All tests must pass.
 
-- A C11 compiler (`gcc` or `clang`)
-- `make`
-- A POSIX system (Linux)
+## Project layout
+
+```
+include/tack/   Public headers
+src/            Implementation
+tests/          Unit tests and runner
+bin/tack        Built executable
+Makefile
+CHANGELOG.md
+```
+
+## Version
+
+Tack **1.0.0** — the first complete release of the Notepad-for-the-terminal
+vision.

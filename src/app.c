@@ -55,6 +55,7 @@ int app_init(App *app, const char *filename)
     }
     settings_defaults(&app->settings);
     editor_apply_settings(&app->editor, &app->settings);
+    keybind_state_init(&app->keys);
     menubar_init_notepad(&app->menu);
     menubar_sync_checks(&app->menu, app->editor.show_linenum,
                         app->editor.word_wrap, app->editor.theme);
@@ -75,6 +76,9 @@ void app_load_config(App *app, const char *path)
         snprintf(app->config_path, sizeof(app->config_path), "%s", path);
         settings_load(&app->settings, path);
         editor_apply_settings(&app->editor, &app->settings);
+        if (app->editor.theme == THEME_VI) {
+            app->keys.vi_mode = VI_NORMAL;
+        }
     }
     menubar_sync_checks(&app->menu, app->editor.show_linenum,
                         app->editor.word_wrap, app->editor.theme);
@@ -133,28 +137,57 @@ int app_dispatch(App *app, Action act)
         app->focus = FOCUS_DIALOG;
         break;
     case ACT_HELP_KEYS:
-        editor_set_message(&app->editor,
-                           "Alt+letter opens menus. Ctrl+S save, Ctrl+Q quit.");
+        editor_set_message(&app->editor, keybind_help(app->editor.theme));
         break;
     case ACT_THEME_NOTEPAD:
         app->editor.theme = THEME_NOTEPAD;
+        keybind_state_init(&app->keys);
         save_user_settings(app);
         editor_set_message(&app->editor, "Key theme: Notepad");
         break;
     case ACT_THEME_NANO:
         app->editor.theme = THEME_NANO;
+        keybind_state_init(&app->keys);
         save_user_settings(app);
         editor_set_message(&app->editor, "Key theme: nano");
         break;
     case ACT_THEME_VI:
         app->editor.theme = THEME_VI;
+        keybind_state_init(&app->keys);
+        app->keys.vi_mode = VI_NORMAL;
         save_user_settings(app);
-        editor_set_message(&app->editor, "Key theme: vi");
+        editor_set_message(&app->editor, "Key theme: vi (normal)");
         break;
     case ACT_THEME_EMACS:
         app->editor.theme = THEME_EMACS;
+        keybind_state_init(&app->keys);
         save_user_settings(app);
         editor_set_message(&app->editor, "Key theme: Emacs");
+        break;
+    case ACT_MOVE_LEFT:
+        editor_move_left(&app->editor);
+        break;
+    case ACT_MOVE_RIGHT:
+        editor_move_right(&app->editor);
+        break;
+    case ACT_MOVE_UP:
+        editor_move_up(&app->editor);
+        break;
+    case ACT_MOVE_DOWN:
+        editor_move_down(&app->editor);
+        break;
+    case ACT_MOVE_HOME:
+        editor_move_home(&app->editor);
+        break;
+    case ACT_MOVE_END:
+        editor_move_end(&app->editor);
+        break;
+    case ACT_KILL_LINE:
+        editor_kill_line(&app->editor);
+        break;
+    case ACT_VI_COLON:
+        dialog_show_vicmd(&app->dialog);
+        app->focus = FOCUS_DIALOG;
         break;
     case ACT_FIND:
         dialog_show_find(&app->dialog, NULL);
@@ -203,6 +236,22 @@ static void finish_dialog(App *app)
         } else if (app->dialog.kind == DLG_REPLACE) {
             editor_replace_all(&app->editor, app->dialog.field,
                                app->dialog.field2);
+        } else if (app->dialog.kind == DLG_VICMD) {
+            if (strcmp(app->dialog.field, "w") == 0 ||
+                strcmp(app->dialog.field, "wq") == 0) {
+                editor_save(&app->editor);
+            }
+            if (strcmp(app->dialog.field, "q") == 0 ||
+                strcmp(app->dialog.field, "q!") == 0 ||
+                strcmp(app->dialog.field, "wq") == 0) {
+                app->editor.quit = 1;
+            }
+            if (strcmp(app->dialog.field, "w") != 0 &&
+                strcmp(app->dialog.field, "q") != 0 &&
+                strcmp(app->dialog.field, "q!") != 0 &&
+                strcmp(app->dialog.field, "wq") != 0) {
+                editor_set_message(&app->editor, "vi: use :w :q :wq :q!");
+            }
         }
     }
     dialog_close(&app->dialog);
@@ -308,14 +357,12 @@ int app_handle_event(App *app, const Event *ev)
         return app->editor.quit;
     }
     if (ev->kind == EV_KEY) {
-        if (ev->key == KEY_CHAR && ev->mods == MOD_CTRL && ev->ch == 'o') {
-            return app_dispatch(app, ACT_OPEN);
+        KeyCmd cmd = keybind_map(app->editor.theme, ev, &app->keys);
+        if (cmd.kind == CMD_ACTION) {
+            return app_dispatch(app, cmd.action);
         }
-        if (ev->key == KEY_CHAR && ev->mods == MOD_CTRL && ev->ch == 'f') {
-            return app_dispatch(app, ACT_FIND);
-        }
-        if (ev->key == KEY_CHAR && ev->mods == MOD_CTRL && ev->ch == 'h') {
-            return app_dispatch(app, ACT_REPLACE);
+        if (cmd.kind == CMD_CONSUME) {
+            return app->editor.quit;
         }
         editor_handle_event(&app->editor, ev);
     }
@@ -333,5 +380,9 @@ void app_render(App *app, Screen *s)
     menubar_render(&app->menu, s, 0, s->cols, right);
     if (app->dialog.visible) {
         dialog_render(&app->dialog, s);
+    } else if (app->editor.theme == THEME_VI && s->rows > 0 && s->cols > 16) {
+        const char *mode =
+            app->keys.vi_mode == VI_INSERT ? "-- INSERT --" : "-- NORMAL --";
+        screen_puts(s, s->rows - 1, s->cols - 14, mode, STYLE_STATUS);
     }
 }

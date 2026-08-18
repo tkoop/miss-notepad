@@ -25,7 +25,15 @@ typedef enum {
     ACT_THEME_NOTEPAD,
     ACT_THEME_NANO,
     ACT_THEME_VI,
-    ACT_THEME_EMACS
+    ACT_THEME_EMACS,
+    ACT_MOVE_LEFT,
+    ACT_MOVE_RIGHT,
+    ACT_MOVE_UP,
+    ACT_MOVE_DOWN,
+    ACT_MOVE_HOME,
+    ACT_MOVE_END,
+    ACT_KILL_LINE,
+    ACT_VI_COLON
 } Action;
 
 #endif

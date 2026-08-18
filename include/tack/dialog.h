@@ -11,7 +11,8 @@ typedef enum {
     DLG_ABOUT,
     DLG_FIND,
     DLG_REPLACE,
-    DLG_CONFIRM
+    DLG_CONFIRM,
+    DLG_VICMD
 } DialogKind;
 
 typedef enum {
@@ -42,6 +43,7 @@ void dialog_show_about(Dialog *d);
 void dialog_show_find(Dialog *d, const char *preset);
 void dialog_show_replace(Dialog *d, const char *preset);
 void dialog_show_confirm(Dialog *d, const char *title, const char *prompt);
+void dialog_show_vicmd(Dialog *d);
 int dialog_handle_event(Dialog *d, const Event *ev);
 void dialog_render(Dialog *d, Screen *s);
 int dialog_hit(const Dialog *d, int y, int x);
