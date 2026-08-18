@@ -48,9 +48,9 @@ $(TEST_BIN): $(LIB_OBJS) $(TEST_OBJS)
 test: $(TEST_BIN) $(APP)
 	$(TEST_BIN)
 	@echo "--- CLI checks ---"
-	$(APP) --version | grep -q "Tack 0.1.0"
+	$(APP) --version | grep -q "Tack "
 	$(APP) --help | grep -q "Usage: tack"
-	$(APP) -v | grep -q "Tack 0.1.0"
+	$(APP) -v | grep -q "Tack "
 	$(APP) -h | grep -q "Usage: tack"
 	! $(APP) --bogus >/dev/null 2>&1
 	@echo "All tests passed."

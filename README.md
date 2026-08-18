@@ -7,8 +7,8 @@ anyone who has used Notepad, while running entirely in the terminal (a TUI,
 not a GUI) — like nano, but with a Notepad-style menu, pop-up dialogs, and
 mouse support.
 
-This is **version 0.1.0**: the project foundation (build system, CLI, tests).
-Later versions add the editor itself.
+This is **version 0.2.0**: foundation plus an in-memory text buffer.
+Later versions add the full-screen editor.
 
 ## Build
 
