@@ -47,7 +47,8 @@ void tack_cli_print_help(void)
     printf("%s is a full-screen command-line text editor\n", TACK_NAME);
     printf("(Microsoft Notepad for the Linux terminal).\n");
     printf("\n");
-    printf("In the editor: type to insert, arrow keys move,\n");
+    printf("In the editor: type to insert, arrow keys move.\n");
+    printf("F10 or Alt+letter opens the Notepad-style menus.\n");
     printf("Ctrl+S save, Ctrl+N new, Ctrl+Z undo, Ctrl+Q quit.\n");
 }
 

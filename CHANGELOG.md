@@ -5,6 +5,15 @@ All notable changes to Tack are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.0] — 2026-08-18
+
+### Added
+
+- Notepad-style menu bar: File, Edit, Format, View, Help
+- Keyboard menu navigation (F10, Alt+letter, arrows, Enter, Esc)
+- Menu actions for New, Save, Exit, Undo/Redo, Line Numbers, Word Wrap, themes
+- Filename shown on the right of the menu bar (Links-style)
+
 ## [0.6.0] — 2026-08-18
 
 ### Added

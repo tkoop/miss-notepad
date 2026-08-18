@@ -1,0 +1,31 @@
+#ifndef TACK_ACTION_H
+#define TACK_ACTION_H
+
+typedef enum {
+    ACT_NONE = 0,
+    ACT_NEW,
+    ACT_OPEN,
+    ACT_SAVE,
+    ACT_SAVE_AS,
+    ACT_EXIT,
+    ACT_UNDO,
+    ACT_REDO,
+    ACT_CUT,
+    ACT_COPY,
+    ACT_PASTE,
+    ACT_DELETE,
+    ACT_SELECT_ALL,
+    ACT_FIND,
+    ACT_FIND_NEXT,
+    ACT_REPLACE,
+    ACT_WORD_WRAP,
+    ACT_LINE_NUMBERS,
+    ACT_ABOUT,
+    ACT_HELP_KEYS,
+    ACT_THEME_NOTEPAD,
+    ACT_THEME_NANO,
+    ACT_THEME_VI,
+    ACT_THEME_EMACS
+} Action;
+
+#endif

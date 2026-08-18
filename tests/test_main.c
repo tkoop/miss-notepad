@@ -34,6 +34,14 @@ void test_editor_backspace_delete(void);
 void test_editor_backspace_join(void);
 void test_editor_enter(void);
 void test_editor_word_move(void);
+void test_menubar_init(void);
+void test_menubar_hotkeys(void);
+void test_menubar_hit_bar(void);
+void test_menubar_navigate_and_activate(void);
+void test_app_menu_exit(void);
+void test_app_line_numbers_action(void);
+void test_app_render_menu(void);
+void test_app_alt_opens_help(void);
 void test_settings_defaults(void);
 void test_settings_parse_format(void);
 void test_settings_roundtrip_file(void);
@@ -90,6 +98,14 @@ int main(void)
         {"editor_backspace_join", test_editor_backspace_join},
         {"editor_enter", test_editor_enter},
         {"editor_word_move", test_editor_word_move},
+        {"menubar_init", test_menubar_init},
+        {"menubar_hotkeys", test_menubar_hotkeys},
+        {"menubar_hit_bar", test_menubar_hit_bar},
+        {"menubar_navigate_and_activate", test_menubar_navigate_and_activate},
+        {"app_menu_exit", test_app_menu_exit},
+        {"app_line_numbers_action", test_app_line_numbers_action},
+        {"app_render_menu", test_app_render_menu},
+        {"app_alt_opens_help", test_app_alt_opens_help},
         {"settings_defaults", test_settings_defaults},
         {"settings_parse_format", test_settings_parse_format},
         {"settings_roundtrip_file", test_settings_roundtrip_file},
