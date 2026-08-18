@@ -5,6 +5,15 @@ All notable changes to Tack are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0] — 2026-08-18
+
+### Added
+
+- Line numbers in the left gutter, on by default
+- Settings file (`~/.config/tack/config`) for line numbers, word wrap, tab stop,
+  and key-binding theme name
+- Toggle line numbers (`editor_toggle_line_numbers`)
+
 ## [0.5.0] — 2026-08-18
 
 ### Added

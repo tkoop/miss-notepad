@@ -1,6 +1,7 @@
 #include "tack/editor.h"
 
 #include "tack/fileio.h"
+#include "tack/settings.h"
 #include "tack/utf8.h"
 #include "tack/version.h"
 
@@ -18,6 +19,9 @@ int editor_init(Editor *e)
 {
     memset(e, 0, sizeof(*e));
     e->tabstop = TACK_TABSTOP_DEFAULT;
+    e->show_linenum = 1;
+    e->word_wrap = 0;
+    e->theme = THEME_NOTEPAD;
     e->view_rows = 24;
     e->view_cols = 80;
     e->filename = NULL;
@@ -184,6 +188,49 @@ int editor_save(Editor *e)
     return editor_save_as(e, e->filename);
 }
 
+void editor_apply_settings(Editor *e, const Settings *s)
+{
+    if (s == NULL) {
+        return;
+    }
+    e->show_linenum = s->show_linenum ? 1 : 0;
+    e->word_wrap = s->word_wrap ? 1 : 0;
+    e->tabstop = s->tabstop > 0 ? s->tabstop : TACK_TABSTOP_DEFAULT;
+    e->theme = s->theme;
+    editor_scroll_into_view(e);
+}
+
+void editor_toggle_line_numbers(Editor *e)
+{
+    e->show_linenum = !e->show_linenum;
+    editor_scroll_into_view(e);
+}
+
+int editor_gutter_width(const Editor *e)
+{
+    size_t n;
+    int digits = 1;
+    if (!e->show_linenum) {
+        return 0;
+    }
+    n = buf_line_count(&e->buf);
+    if (n == 0) {
+        n = 1;
+    }
+    while (n >= 10) {
+        digits++;
+        n /= 10;
+    }
+    return digits + 2; /* "12|" plus a pad space, or " 1|" */
+}
+
+int editor_text_cols(const Editor *e)
+{
+    int g = editor_gutter_width(e);
+    int c = e->view_cols - g;
+    return c > 1 ? c : 1;
+}
+
 void editor_set_view(Editor *e, int rows, int cols)
 {
     e->view_rows = rows > 0 ? rows : 1;
@@ -214,7 +261,7 @@ void editor_scroll_into_view(Editor *e)
 {
     int col = editor_cursor_col(e);
     int rows = e->view_rows;
-    int cols = e->view_cols;
+    int cols = editor_text_cols(e);
 
     if (e->cy < e->row_off) {
         e->row_off = e->cy;
@@ -668,6 +715,33 @@ int editor_handle_event(Editor *e, const Event *ev)
     return e->quit;
 }
 
+static void render_gutter_line(Screen *s, int y, int gutter, size_t lineno)
+{
+    char tmp[16];
+    int width;
+    int i;
+    if (gutter <= 0) {
+        return;
+    }
+    width = gutter - 2;
+    if (width < 1) {
+        width = 1;
+    }
+    if (width > 12) {
+        width = 12;
+    }
+    if (lineno > 999999999u) {
+        lineno = 999999999u;
+    }
+    snprintf(tmp, sizeof(tmp), "%*zu", width, lineno);
+    screen_fill(s, y, 0, gutter, 1, (uint32_t)' ', STYLE_GUTTER);
+    screen_puts(s, y, 0, tmp, STYLE_GUTTER);
+    i = (int)strlen(tmp);
+    if (i < gutter) {
+        screen_put(s, y, gutter - 1, (uint32_t)'|', STYLE_GUTTER);
+    }
+}
+
 static void render_text(const Editor *e, Screen *s, int y0, int x0, int h, int w)
 {
     int r;
@@ -681,7 +755,13 @@ static void render_text(const Editor *e, Screen *s, int y0, int x0, int h, int w
 
         screen_fill(s, y0 + r, x0, w, 1, (uint32_t)' ', STYLE_NORMAL);
         if (row >= buf_line_count(&e->buf)) {
+            if (e->show_linenum && x0 > 0) {
+                screen_fill(s, y0 + r, 0, x0, 1, (uint32_t)' ', STYLE_GUTTER);
+            }
             continue;
+        }
+        if (e->show_linenum && x0 > 0) {
+            render_gutter_line(s, y0 + r, x0, row + 1);
         }
         line = buf_line(&e->buf, row, &len);
         i = 0;
@@ -766,11 +846,17 @@ void editor_render(const Editor *e, Screen *s)
         text_h = 0;
     }
     if (text_h > 0) {
-        render_text(e, s, text_y, 0, text_h, s->cols);
+        int gutter = editor_gutter_width(e);
+        int tw = s->cols - gutter;
+        if (tw < 1) {
+            tw = 1;
+            gutter = 0;
+        }
+        render_text(e, s, text_y, gutter, text_h, tw);
     }
 
     cur_y = text_y + (int)(e->cy - e->row_off);
-    cur_x = editor_cursor_col(e) - (int)e->col_off;
+    cur_x = editor_gutter_width(e) + editor_cursor_col(e) - (int)e->col_off;
     if (cur_x < 0) {
         cur_x = 0;
     }

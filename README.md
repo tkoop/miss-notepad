@@ -7,8 +7,8 @@ anyone who has used Notepad, while running entirely in the terminal (a TUI,
 not a GUI) — like nano, but with a Notepad-style menu, pop-up dialogs, and
 mouse support.
 
-This is **version 0.5.0**: edit, undo, open a file, and save it.
-Menus, dialogs, and mouse support arrive in later versions.
+This is **version 0.6.0**: a full-screen editor with line numbers (on by
+default) and a settings file. Menus, dialogs, and mouse support arrive next.
 
 ## Build
 

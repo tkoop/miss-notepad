@@ -1,8 +1,11 @@
 #include "tack/cli.h"
 #include "tack/editor.h"
+#include "tack/settings.h"
 #include "tack/term.h"
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 static int run_editor(const char *filename)
 {
@@ -18,6 +21,17 @@ static int run_editor(const char *filename)
     if (editor_init(&ed) != 0) {
         fprintf(stderr, "tack: out of memory\n");
         return 1;
+    }
+    {
+        Settings set;
+        const char *home = getenv("HOME");
+        char path[512];
+        settings_defaults(&set);
+        if (home != NULL) {
+            snprintf(path, sizeof(path), "%s/.config/tack/config", home);
+            settings_load(&set, path);
+        }
+        editor_apply_settings(&ed, &set);
     }
     if (filename != NULL) {
         if (editor_load_path(&ed, filename) != 0) {

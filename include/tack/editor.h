@@ -4,6 +4,7 @@
 #include "tack/buffer.h"
 #include "tack/keys.h"
 #include "tack/screen.h"
+#include "tack/settings.h"
 
 #include <stdint.h>
 
@@ -32,6 +33,9 @@ typedef struct {
     size_t col_off;
     int goal_col;
     int tabstop;
+    int show_linenum;
+    int word_wrap;
+    KeyTheme theme;
     int view_rows;
     int view_cols;
     int dirty;
@@ -72,5 +76,9 @@ int editor_new(Editor *e);
 int editor_save(Editor *e);
 int editor_save_as(Editor *e, const char *path);
 void editor_set_message(Editor *e, const char *msg);
+void editor_apply_settings(Editor *e, const Settings *s);
+void editor_toggle_line_numbers(Editor *e);
+int editor_gutter_width(const Editor *e);
+int editor_text_cols(const Editor *e);
 
 #endif

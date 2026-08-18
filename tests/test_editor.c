@@ -118,10 +118,15 @@ void test_editor_render(void)
     editor_render(&e, &s);
     ASSERT_EQ_INT("title style", STYLE_TITLE, screen_get_style(&s, 0, 0));
     ASSERT_EQ_INT("status style", STYLE_STATUS, screen_get_style(&s, 7, 0));
-    ASSERT_EQ_INT("H", (int)'H', (int)screen_get(&s, 1, 0));
-    ASSERT_EQ_INT("e", (int)'e', (int)screen_get(&s, 1, 1));
-    ASSERT_EQ_INT("cursor y", 1, s.cy);
-    ASSERT_EQ_INT("cursor x", 0, s.cx);
+    {
+        int g = editor_gutter_width(&e);
+        ASSERT_TRUE("gutter", g > 0);
+        ASSERT_EQ_INT("H", (int)'H', (int)screen_get(&s, 1, g));
+        ASSERT_EQ_INT("e", (int)'e', (int)screen_get(&s, 1, g + 1));
+        ASSERT_EQ_INT("cursor y", 1, s.cy);
+        ASSERT_EQ_INT("cursor x", g, s.cx);
+        ASSERT_EQ_INT("pipe", (int)'|', (int)screen_get(&s, 1, g - 1));
+    }
     screen_free(&s);
     editor_free(&e);
 }

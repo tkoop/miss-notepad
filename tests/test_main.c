@@ -34,6 +34,11 @@ void test_editor_backspace_delete(void);
 void test_editor_backspace_join(void);
 void test_editor_enter(void);
 void test_editor_word_move(void);
+void test_settings_defaults(void);
+void test_settings_parse_format(void);
+void test_settings_roundtrip_file(void);
+void test_editor_linenum_toggle(void);
+void test_editor_apply_settings(void);
 void test_file_read_all(void);
 void test_file_read_missing(void);
 void test_file_write_and_read(void);
@@ -85,6 +90,11 @@ int main(void)
         {"editor_backspace_join", test_editor_backspace_join},
         {"editor_enter", test_editor_enter},
         {"editor_word_move", test_editor_word_move},
+        {"settings_defaults", test_settings_defaults},
+        {"settings_parse_format", test_settings_parse_format},
+        {"settings_roundtrip_file", test_settings_roundtrip_file},
+        {"editor_linenum_toggle", test_editor_linenum_toggle},
+        {"editor_apply_settings", test_editor_apply_settings},
         {"file_read_all", test_file_read_all},
         {"file_read_missing", test_file_read_missing},
         {"file_write_and_read", test_file_write_and_read},
