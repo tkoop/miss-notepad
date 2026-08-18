@@ -5,6 +5,14 @@ All notable changes to Tack are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.0] — 2026-08-18
+
+### Added
+
+- Mouse support: click to move the caret, click menus, scroll wheel
+- ASCII pop-up dialogs with fields and buttons (Open, Save As, About, Find UI)
+- Ctrl+O opens the Open dialog
+
 ## [0.7.0] — 2026-08-18
 
 ### Added

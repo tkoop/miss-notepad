@@ -73,7 +73,8 @@ int term_init(void)
     sigaction(SIGWINCH, &sa, NULL);
 
     /* Alternate screen, hide cursor, clear. */
-    static const char enter[] = "\033[?1049h\033[?25l\033[2J\033[H";
+    static const char enter[] =
+        "\033[?1049h\033[?25l\033[2J\033[H\033[?1000h\033[?1002h\033[?1006h";
     if (write(STDOUT_FILENO, enter, sizeof(enter) - 1) < 0) {
         term_shutdown();
         return -1;
@@ -87,7 +88,8 @@ void term_shutdown(void)
     if (!g_raw) {
         return;
     }
-    static const char leave[] = "\033[?25h\033[?1049l";
+    static const char leave[] =
+        "\033[?1006l\033[?1002l\033[?1000l\033[?25h\033[?1049l";
     if (write(STDOUT_FILENO, leave, sizeof(leave) - 1) < 0) {
         /* best-effort restore */
     }

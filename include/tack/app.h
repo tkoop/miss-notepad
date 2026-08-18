@@ -2,6 +2,7 @@
 #define TACK_APP_H
 
 #include "tack/action.h"
+#include "tack/dialog.h"
 #include "tack/editor.h"
 #include "tack/menu.h"
 #include "tack/settings.h"
@@ -11,6 +12,7 @@ typedef enum { FOCUS_EDIT = 0, FOCUS_MENU = 1, FOCUS_DIALOG = 2 } AppFocus;
 typedef struct {
     Editor editor;
     MenuBar menu;
+    Dialog dialog;
     Settings settings;
     AppFocus focus;
     char config_path[512];

@@ -95,10 +95,12 @@ int app_dispatch(App *app, Action act)
         editor_save(&app->editor);
         break;
     case ACT_SAVE_AS:
-        editor_set_message(&app->editor, "Save As: pop-up dialogs come next");
+        dialog_show_saveas(&app->dialog, app->editor.filename);
+        app->focus = FOCUS_DIALOG;
         break;
     case ACT_OPEN:
-        editor_set_message(&app->editor, "Open: pop-up dialogs come next");
+        dialog_show_open(&app->dialog);
+        app->focus = FOCUS_DIALOG;
         break;
     case ACT_EXIT:
         app->editor.quit = 1;
@@ -127,8 +129,8 @@ int app_dispatch(App *app, Action act)
                                              : "Word wrap off");
         break;
     case ACT_ABOUT:
-        editor_set_message(&app->editor, "Tack " TACK_VERSION_STRING
-                                         " — Notepad for the terminal");
+        dialog_show_about(&app->dialog);
+        app->focus = FOCUS_DIALOG;
         break;
     case ACT_HELP_KEYS:
         editor_set_message(&app->editor,
@@ -154,13 +156,19 @@ int app_dispatch(App *app, Action act)
         save_user_settings(app);
         editor_set_message(&app->editor, "Key theme: Emacs");
         break;
+    case ACT_FIND:
+        dialog_show_find(&app->dialog, NULL);
+        app->focus = FOCUS_DIALOG;
+        break;
+    case ACT_REPLACE:
+        dialog_show_replace(&app->dialog, NULL);
+        app->focus = FOCUS_DIALOG;
+        break;
     case ACT_CUT:
     case ACT_COPY:
     case ACT_PASTE:
     case ACT_SELECT_ALL:
-    case ACT_FIND:
     case ACT_FIND_NEXT:
-    case ACT_REPLACE:
         editor_set_message(&app->editor,
                            "That command arrives in a later version");
         break;
@@ -171,10 +179,96 @@ int app_dispatch(App *app, Action act)
     return app->editor.quit;
 }
 
+static void finish_dialog(App *app)
+{
+    if (app->dialog.result == DLG_OK) {
+        if (app->dialog.kind == DLG_OPEN) {
+            if (editor_load_path(&app->editor, app->dialog.field) != 0) {
+                editor_set_message(&app->editor, "Cannot open file");
+            }
+        } else if (app->dialog.kind == DLG_SAVEAS) {
+            editor_save_as(&app->editor, app->dialog.field);
+        } else if (app->dialog.kind == DLG_FIND || app->dialog.kind == DLG_REPLACE) {
+            editor_set_message(&app->editor, "Search arrives in the next version");
+        }
+    }
+    dialog_close(&app->dialog);
+    app->focus = FOCUS_EDIT;
+}
+
+static int handle_mouse(App *app, const Event *ev)
+{
+    int btn = ev->mbtn;
+    int wheel = (btn & 64) != 0;
+    if (!ev->mdown && !wheel) {
+        return app->editor.quit;
+    }
+    if (app->dialog.visible) {
+        dialog_handle_event(&app->dialog, ev);
+        if (!app->dialog.visible) {
+            finish_dialog(app);
+        }
+        return app->editor.quit;
+    }
+    if (wheel) {
+        if ((btn & 1) == 0) {
+            editor_move_up(&app->editor);
+        } else {
+            editor_move_down(&app->editor);
+        }
+        return app->editor.quit;
+    }
+    if ((btn & 3) != 0) {
+        return app->editor.quit;
+    }
+    /* Left click */
+    if (app->menu.active) {
+        int item = menubar_hit_item(&app->menu, 1, ev->my, ev->mx);
+        int bar = menubar_hit_bar(&app->menu, ev->my, ev->mx);
+        if (item >= 0) {
+            Action act = app->menu.menus[app->menu.open].items[item].action;
+            menubar_close(&app->menu);
+            app->focus = FOCUS_EDIT;
+            return app_dispatch(app, act);
+        }
+        if (bar >= 0) {
+            menubar_open(&app->menu, bar);
+            app->focus = FOCUS_MENU;
+            return app->editor.quit;
+        }
+        menubar_close(&app->menu);
+        app->focus = FOCUS_EDIT;
+        return app->editor.quit;
+    }
+    {
+        int bar = menubar_hit_bar(&app->menu, ev->my, ev->mx);
+        if (bar >= 0) {
+            menubar_open(&app->menu, bar);
+            app->focus = FOCUS_MENU;
+            return app->editor.quit;
+        }
+    }
+    if (ev->my > 0) {
+        int gutter = editor_gutter_width(&app->editor);
+        editor_click(&app->editor, ev->my - 1, ev->mx - gutter);
+    }
+    return app->editor.quit;
+}
+
 int app_handle_event(App *app, const Event *ev)
 {
     Action act;
     if (ev == NULL) {
+        return app->editor.quit;
+    }
+    if (ev->kind == EV_MOUSE) {
+        return handle_mouse(app, ev);
+    }
+    if (app->dialog.visible && ev->kind == EV_KEY) {
+        dialog_handle_event(&app->dialog, ev);
+        if (!app->dialog.visible) {
+            finish_dialog(app);
+        }
         return app->editor.quit;
     }
     if (ev->kind == EV_KEY &&
@@ -187,6 +281,9 @@ int app_handle_event(App *app, const Event *ev)
         return app->editor.quit;
     }
     if (ev->kind == EV_KEY) {
+        if (ev->key == KEY_CHAR && ev->mods == MOD_CTRL && ev->ch == 'o') {
+            return app_dispatch(app, ACT_OPEN);
+        }
         editor_handle_event(&app->editor, ev);
     }
     return app->editor.quit;
@@ -201,4 +298,7 @@ void app_render(App *app, Screen *s)
     menubar_sync_checks(&app->menu, app->editor.show_linenum,
                         app->editor.word_wrap, app->editor.theme);
     menubar_render(&app->menu, s, 0, s->cols, right);
+    if (app->dialog.visible) {
+        dialog_render(&app->dialog, s);
+    }
 }

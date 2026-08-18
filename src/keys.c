@@ -135,16 +135,36 @@ int event_parse(const unsigned char *p, size_t n, int allow_incomplete, Event *o
                 return 0;
             }
             if (i < n && p[i] == '<') {
-                /* SGR mouse — consume later versions; treat incomplete. */
+                int btn = 0, mx = 0, my = 0;
+                int field = 0;
+                int v = 0;
                 i++;
                 while (i < n && p[i] != 'M' && p[i] != 'm') {
+                    if (p[i] >= '0' && p[i] <= '9') {
+                        v = v * 10 + (p[i] - '0');
+                    } else if (p[i] == ';') {
+                        if (field == 0) {
+                            btn = v;
+                        } else if (field == 1) {
+                            mx = v;
+                        }
+                        field++;
+                        v = 0;
+                    }
                     i++;
                 }
                 if (i >= n) {
                     return allow_incomplete ? 0 : 1;
                 }
+                if (field >= 2) {
+                    my = v;
+                }
                 set_key(out, KEY_CHAR, 0, 0);
                 out->kind = EV_MOUSE;
+                out->mbtn = btn;
+                out->mx = mx > 0 ? mx - 1 : 0;
+                out->my = my > 0 ? my - 1 : 0;
+                out->mdown = p[i] == 'M';
                 return (int)(i + 1);
             }
             while (i < n) {

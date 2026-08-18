@@ -34,6 +34,13 @@ void test_editor_backspace_delete(void);
 void test_editor_backspace_join(void);
 void test_editor_enter(void);
 void test_editor_word_move(void);
+void test_mouse_parse(void);
+void test_dialog_type_and_ok(void);
+void test_dialog_esc_cancel(void);
+void test_dialog_render(void);
+void test_app_open_dialog_saveas(void);
+void test_editor_click(void);
+void test_app_mouse_menu(void);
 void test_menubar_init(void);
 void test_menubar_hotkeys(void);
 void test_menubar_hit_bar(void);
@@ -98,6 +105,13 @@ int main(void)
         {"editor_backspace_join", test_editor_backspace_join},
         {"editor_enter", test_editor_enter},
         {"editor_word_move", test_editor_word_move},
+        {"mouse_parse", test_mouse_parse},
+        {"dialog_type_and_ok", test_dialog_type_and_ok},
+        {"dialog_esc_cancel", test_dialog_esc_cancel},
+        {"dialog_render", test_dialog_render},
+        {"app_open_dialog_saveas", test_app_open_dialog_saveas},
+        {"editor_click", test_editor_click},
+        {"app_mouse_menu", test_app_mouse_menu},
         {"menubar_init", test_menubar_init},
         {"menubar_hotkeys", test_menubar_hotkeys},
         {"menubar_hit_bar", test_menubar_hit_bar},

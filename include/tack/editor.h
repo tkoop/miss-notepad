@@ -77,6 +77,7 @@ int editor_save(Editor *e);
 int editor_save_as(Editor *e, const char *path);
 void editor_set_message(Editor *e, const char *msg);
 void editor_apply_settings(Editor *e, const Settings *s);
+void editor_click(Editor *e, int text_y, int text_x);
 void editor_toggle_line_numbers(Editor *e);
 int editor_gutter_width(const Editor *e);
 int editor_text_cols(const Editor *e);

@@ -15,6 +15,8 @@ static int is_word(unsigned char c)
     return (c >= 128) || isalnum(c) || c == '_';
 }
 
+static void remember_goal(Editor *e);
+
 int editor_init(Editor *e)
 {
     memset(e, 0, sizeof(*e));
@@ -197,6 +199,30 @@ void editor_apply_settings(Editor *e, const Settings *s)
     e->word_wrap = s->word_wrap ? 1 : 0;
     e->tabstop = s->tabstop > 0 ? s->tabstop : TACK_TABSTOP_DEFAULT;
     e->theme = s->theme;
+    editor_scroll_into_view(e);
+}
+
+void editor_click(Editor *e, int text_y, int text_x)
+{
+    size_t len = 0;
+    const char *line;
+    int col;
+    int last = (int)buf_line_count(&e->buf) - 1;
+    int gy = text_y + (int)e->row_off;
+    if (gy < 0) {
+        gy = 0;
+    }
+    if (gy > last) {
+        gy = last;
+    }
+    e->cy = (size_t)gy;
+    col = text_x + (int)e->col_off;
+    if (col < 0) {
+        col = 0;
+    }
+    line = buf_line(&e->buf, e->cy, &len);
+    e->cx = utf8_byte_at_col(line, len, (size_t)col, e->tabstop);
+    remember_goal(e);
     editor_scroll_into_view(e);
 }
 
