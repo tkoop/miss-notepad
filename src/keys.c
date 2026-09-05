@@ -1,6 +1,6 @@
-#include "tack/keys.h"
+#include "missnotepad/keys.h"
 
-#include "tack/utf8.h"
+#include "missnotepad/utf8.h"
 
 static int mods_from_param(int p)
 {

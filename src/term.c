@@ -1,6 +1,6 @@
-#include "tack/term.h"
+#include "missnotepad/term.h"
 
-#include "tack/utf8.h"
+#include "missnotepad/utf8.h"
 
 #include <signal.h>
 #include <stdio.h>

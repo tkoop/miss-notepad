@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to Tack are documented in this file.
+All notable changes to MissNotepad are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
@@ -46,7 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Line numbers in the left gutter, on by default
-- Settings file (`~/.config/tack/config`) for line numbers, word wrap, tab stop,
+- Settings file (`~/.config/missnotepad/config`) for line numbers, word wrap, tab stop,
   and key-binding theme name
 - Toggle line numbers (`editor_toggle_line_numbers`)
 
@@ -75,7 +75,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Full-screen terminal UI (alternate screen buffer)
 - Virtual screen canvas used by the TUI and by tests
 - Keyboard navigation: arrows, Home/End, Page Up/Down, Ctrl+arrows, Ctrl+Home/End
-- Open a file for viewing (`tack FILE`); missing files start empty
+- Open a file for viewing (`miss FILE`); missing files start empty
 - Quit with Ctrl+Q
 - Title bar and status line (line/column)
 
@@ -91,7 +91,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Project layout (`src/`, `include/tack/`, `tests/`, `bin/`)
+- Project layout (`src/`, `include/missnotepad/`, `tests/`, `bin/`)
 - Makefile build for the editor and the test suite
-- Command-line interface: `tack [FILE]`, `--help` / `-h`, `--version` / `-v`
+- Command-line interface: `miss [FILE]`, `--help` / `-h`, `--version` / `-v`
 - Version reported as 0.1.0

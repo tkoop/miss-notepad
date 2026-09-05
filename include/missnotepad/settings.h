@@ -1,5 +1,5 @@
-#ifndef TACK_SETTINGS_H
-#define TACK_SETTINGS_H
+#ifndef MISSNOTEPAD_SETTINGS_H
+#define MISSNOTEPAD_SETTINGS_H
 
 #include <stddef.h>
 

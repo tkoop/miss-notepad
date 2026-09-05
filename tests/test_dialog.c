@@ -1,6 +1,6 @@
-#include "tack/app.h"
-#include "tack/dialog.h"
-#include "tack/keys.h"
+#include "missnotepad/app.h"
+#include "missnotepad/dialog.h"
+#include "missnotepad/keys.h"
 #include "test.h"
 
 #include <stdio.h>
@@ -84,7 +84,7 @@ void test_dialog_render(void)
 void test_app_open_dialog_saveas(void)
 {
     App app;
-    char path[] = "/tmp/tack-dlg-XXXXXX";
+    char path[] = "/tmp/missnotepad-dlg-XXXXXX";
     int fd = mkstemp(path);
     Event ev;
     ASSERT_TRUE("mkstemp", fd >= 0);

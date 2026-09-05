@@ -1,4 +1,4 @@
-#include "tack/editor.h"
+#include "missnotepad/editor.h"
 #include "test.h"
 
 #include <stdlib.h>

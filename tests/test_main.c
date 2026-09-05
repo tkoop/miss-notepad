@@ -59,6 +59,7 @@ void test_menubar_hotkeys(void);
 void test_menubar_hit_bar(void);
 void test_menubar_navigate_and_activate(void);
 void test_app_menu_exit(void);
+void test_app_menu_ctrl_q_exit(void);
 void test_app_line_numbers_action(void);
 void test_app_render_menu(void);
 void test_app_alt_opens_help(void);
@@ -83,7 +84,7 @@ void test_cli_too_many_files(void);
 
 int main(void)
 {
-    const TackTest tests[] = {
+    const MissNotepadTest tests[] = {
         {"version_string", test_version_string},
         {"utf8_ascii_next_prev", test_utf8_ascii_next_prev},
         {"utf8_multibyte", test_utf8_multibyte},
@@ -143,6 +144,7 @@ int main(void)
         {"menubar_hit_bar", test_menubar_hit_bar},
         {"menubar_navigate_and_activate", test_menubar_navigate_and_activate},
         {"app_menu_exit", test_app_menu_exit},
+        {"app_menu_ctrl_q_exit", test_app_menu_ctrl_q_exit},
         {"app_line_numbers_action", test_app_line_numbers_action},
         {"app_render_menu", test_app_render_menu},
         {"app_alt_opens_help", test_app_alt_opens_help},
@@ -166,5 +168,5 @@ int main(void)
         {"cli_too_many_files", test_cli_too_many_files},
     };
 
-    return tack_run_tests(tests, (int)(sizeof(tests) / sizeof(tests[0])));
+    return missnotepad_run_tests(tests, (int)(sizeof(tests) / sizeof(tests[0])));
 }

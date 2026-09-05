@@ -1,7 +1,7 @@
-#ifndef TACK_SEARCH_H
-#define TACK_SEARCH_H
+#ifndef MISSNOTEPAD_SEARCH_H
+#define MISSNOTEPAD_SEARCH_H
 
-#include "tack/buffer.h"
+#include "missnotepad/buffer.h"
 
 #include <stddef.h>
 

@@ -1,11 +1,12 @@
-#include "tack/editor.h"
+#include "missnotepad/editor.h"
 
-#include "tack/fileio.h"
-#include "tack/search.h"
-#include "tack/settings.h"
-#include "tack/utf8.h"
-#include "tack/version.h"
-#include "tack/wrap.h"
+#include "missnotepad/clipboard.h"
+#include "missnotepad/fileio.h"
+#include "missnotepad/search.h"
+#include "missnotepad/settings.h"
+#include "missnotepad/utf8.h"
+#include "missnotepad/version.h"
+#include "missnotepad/wrap.h"
 
 #include <ctype.h>
 #include <stdio.h>
@@ -22,7 +23,7 @@ static void remember_goal(Editor *e);
 int editor_init(Editor *e)
 {
     memset(e, 0, sizeof(*e));
-    e->tabstop = TACK_TABSTOP_DEFAULT;
+    e->tabstop = MISSNOTEPAD_TABSTOP_DEFAULT;
     e->show_linenum = 1;
     e->word_wrap = 0;
     e->theme = THEME_NOTEPAD;
@@ -189,7 +190,7 @@ int editor_save_as(Editor *e, const char *path)
 int editor_save(Editor *e)
 {
     if (e->filename == NULL) {
-        editor_set_message(e, "No file name — reopen with: tack FILE");
+        editor_set_message(e, "No file name — reopen with: miss FILE");
         return -1;
     }
     return editor_save_as(e, e->filename);
@@ -202,7 +203,7 @@ void editor_apply_settings(Editor *e, const Settings *s)
     }
     e->show_linenum = s->show_linenum ? 1 : 0;
     e->word_wrap = s->word_wrap ? 1 : 0;
-    e->tabstop = s->tabstop > 0 ? s->tabstop : TACK_TABSTOP_DEFAULT;
+    e->tabstop = s->tabstop > 0 ? s->tabstop : MISSNOTEPAD_TABSTOP_DEFAULT;
     e->theme = s->theme;
     editor_scroll_into_view(e);
 }
@@ -624,8 +625,12 @@ int editor_copy(Editor *e)
         free(s);
         return -1;
     }
+    if (missnotepad_clipboard_set(s, n) == 0) {
+        editor_set_message(e, "Copied");
+    } else {
+        editor_set_message(e, "Copied locally (system clipboard unavailable)");
+    }
     free(s);
-    editor_set_message(e, "Copied");
     return 0;
 }
 
@@ -1131,7 +1136,7 @@ void editor_render(const Editor *e, Screen *s)
         return;
     }
 
-    snprintf(title, sizeof(title), " %s %s — %s%s", TACK_NAME, TACK_VERSION_STRING,
+    snprintf(title, sizeof(title), " %s %s — %s%s", MISSNOTEPAD_NAME, MISSNOTEPAD_VERSION_STRING,
              name, e->dirty ? " *" : "");
     screen_fill(s, 0, 0, s->cols, 1, (uint32_t)' ', STYLE_TITLE);
     screen_puts(s, 0, 0, title, STYLE_TITLE);

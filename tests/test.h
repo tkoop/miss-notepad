@@ -1,5 +1,5 @@
-#ifndef TACK_TEST_H
-#define TACK_TEST_H
+#ifndef MISSNOTEPAD_TEST_H
+#define MISSNOTEPAD_TEST_H
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -48,13 +48,13 @@ extern int g_tests_failed;
 #define ASSERT_NULL(msg, ptr) ASSERT_TRUE((msg), (ptr) == NULL)
 #define ASSERT_NOT_NULL(msg, ptr) ASSERT_TRUE((msg), (ptr) != NULL)
 
-typedef void (*tack_test_fn)(void);
+typedef void (*missnotepad_test_fn)(void);
 
 typedef struct {
     const char *name;
-    tack_test_fn fn;
-} TackTest;
+    missnotepad_test_fn fn;
+} MissNotepadTest;
 
-int tack_run_tests(const TackTest *tests, int count);
+int missnotepad_run_tests(const MissNotepadTest *tests, int count);
 
 #endif

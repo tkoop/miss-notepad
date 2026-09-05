@@ -1,6 +1,6 @@
-#include "tack/app.h"
+#include "missnotepad/app.h"
 
-#include "tack/version.h"
+#include "missnotepad/version.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -27,7 +27,7 @@ static void load_user_settings(App *app)
     app->config_path[0] = '\0';
     if (home != NULL) {
         snprintf(app->config_path, sizeof(app->config_path),
-                 "%s/.config/tack/config", home);
+                 "%s/.config/missnotepad/config", home);
         settings_load(&app->settings, app->config_path);
     }
     editor_apply_settings(&app->editor, &app->settings);
@@ -346,6 +346,10 @@ int app_handle_event(App *app, const Event *ev)
             finish_dialog(app);
         }
         return app->editor.quit;
+    }
+    if (ev->kind == EV_KEY && ev->key == KEY_CHAR &&
+        ev->mods == MOD_CTRL && ev->ch == 'q') {
+        return app_dispatch(app, ACT_EXIT);
     }
     if (ev->kind == EV_KEY &&
         (app->menu.active || ev->key == KEY_F10 || (ev->mods & MOD_ALT))) {

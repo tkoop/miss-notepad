@@ -1,5 +1,5 @@
-#include "tack/app.h"
-#include "tack/menu.h"
+#include "missnotepad/app.h"
+#include "missnotepad/menu.h"
 #include "test.h"
 
 static Event key(KeyId id, uint32_t ch, int mods)
@@ -68,6 +68,20 @@ void test_app_menu_exit(void)
     app_handle_event(&app, &ev);
     ASSERT_EQ_INT("menu focus", FOCUS_MENU, app.focus);
     ev = key(KEY_CHAR, 'x', 0);
+    app_handle_event(&app, &ev);
+    ASSERT_EQ_INT("quit", 1, app.editor.quit);
+    app_free(&app);
+}
+
+void test_app_menu_ctrl_q_exit(void)
+{
+    App app;
+    Event ev;
+    ASSERT_EQ_INT("init", 0, app_init(&app, NULL));
+    ev = key(KEY_F10, 0, 0);
+    app_handle_event(&app, &ev);
+    ASSERT_TRUE("menu open", app.menu.active);
+    ev = key(KEY_CHAR, 'q', MOD_CTRL);
     app_handle_event(&app, &ev);
     ASSERT_EQ_INT("quit", 1, app.editor.quit);
     app_free(&app);

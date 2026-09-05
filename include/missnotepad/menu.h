@@ -1,13 +1,13 @@
-#ifndef TACK_MENU_H
-#define TACK_MENU_H
+#ifndef MISSNOTEPAD_MENU_H
+#define MISSNOTEPAD_MENU_H
 
-#include "tack/action.h"
-#include "tack/keys.h"
-#include "tack/screen.h"
-#include "tack/settings.h"
+#include "missnotepad/action.h"
+#include "missnotepad/keys.h"
+#include "missnotepad/screen.h"
+#include "missnotepad/settings.h"
 
-#define TACK_MENU_MAX 8
-#define TACK_ITEM_MAX 16
+#define MISSNOTEPAD_MENU_MAX 8
+#define MISSNOTEPAD_ITEM_MAX 16
 
 typedef struct {
     const char *label;
@@ -21,14 +21,14 @@ typedef struct {
 typedef struct {
     const char *label;
     char hot;
-    MenuItem items[TACK_ITEM_MAX];
+    MenuItem items[MISSNOTEPAD_ITEM_MAX];
     int count;
     int x;
     int w;
 } Menu;
 
 typedef struct {
-    Menu menus[TACK_MENU_MAX];
+    Menu menus[MISSNOTEPAD_MENU_MAX];
     int count;
     int open;
     int highlight;

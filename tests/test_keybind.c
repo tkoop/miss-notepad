@@ -1,5 +1,5 @@
-#include "tack/app.h"
-#include "tack/keybind.h"
+#include "missnotepad/app.h"
+#include "missnotepad/keybind.h"
 #include "test.h"
 
 static Event key(KeyId id, uint32_t ch, int mods)

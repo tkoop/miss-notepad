@@ -1,10 +1,10 @@
-#ifndef TACK_EDITOR_H
-#define TACK_EDITOR_H
+#ifndef MISSNOTEPAD_EDITOR_H
+#define MISSNOTEPAD_EDITOR_H
 
-#include "tack/buffer.h"
-#include "tack/keys.h"
-#include "tack/screen.h"
-#include "tack/settings.h"
+#include "missnotepad/buffer.h"
+#include "missnotepad/keys.h"
+#include "missnotepad/screen.h"
+#include "missnotepad/settings.h"
 
 #include <stdint.h>
 

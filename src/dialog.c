@@ -1,7 +1,7 @@
-#include "tack/dialog.h"
+#include "missnotepad/dialog.h"
 
-#include "tack/utf8.h"
-#include "tack/version.h"
+#include "missnotepad/utf8.h"
+#include "missnotepad/version.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -45,8 +45,8 @@ void dialog_show_about(Dialog *d)
 {
     char prompt[80];
     snprintf(prompt, sizeof(prompt), "%s %s — Notepad for the terminal",
-             TACK_NAME, TACK_VERSION_STRING);
-    setup(d, DLG_ABOUT, "About Tack", prompt, 0, 0);
+             MISSNOTEPAD_NAME, MISSNOTEPAD_VERSION_STRING);
+    setup(d, DLG_ABOUT, "About MissNotepad", prompt, 0, 0);
 }
 
 void dialog_show_find(Dialog *d, const char *preset)

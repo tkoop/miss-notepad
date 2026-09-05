@@ -5,7 +5,7 @@
 int g_tests_run;
 int g_tests_failed;
 
-int tack_run_tests(const TackTest *tests, int count)
+int missnotepad_run_tests(const MissNotepadTest *tests, int count)
 {
     int i;
 

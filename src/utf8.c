@@ -1,4 +1,4 @@
-#include "tack/utf8.h"
+#include "missnotepad/utf8.h"
 
 static int utf8_is_cont(unsigned char c)
 {
@@ -108,7 +108,7 @@ size_t utf8_display_width(const char *s, size_t len, size_t bytes, int tabstop)
 {
     size_t i = 0;
     size_t width = 0;
-    int ts = tabstop > 0 ? tabstop : TACK_TABSTOP_DEFAULT;
+    int ts = tabstop > 0 ? tabstop : MISSNOTEPAD_TABSTOP_DEFAULT;
 
     if (bytes > len) {
         bytes = len;
@@ -145,7 +145,7 @@ size_t utf8_byte_at_col(const char *s, size_t len, size_t col, int tabstop)
 {
     size_t i = 0;
     size_t width = 0;
-    int ts = tabstop > 0 ? tabstop : TACK_TABSTOP_DEFAULT;
+    int ts = tabstop > 0 ? tabstop : MISSNOTEPAD_TABSTOP_DEFAULT;
 
     while (i < len) {
         uint32_t cp;

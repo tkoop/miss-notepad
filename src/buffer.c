@@ -1,4 +1,4 @@
-#include "tack/buffer.h"
+#include "missnotepad/buffer.h"
 
 #include <stdlib.h>
 #include <string.h>

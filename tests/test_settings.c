@@ -1,5 +1,5 @@
-#include "tack/editor.h"
-#include "tack/settings.h"
+#include "missnotepad/editor.h"
+#include "missnotepad/settings.h"
 #include "test.h"
 
 #include <stdio.h>
@@ -11,7 +11,7 @@ void test_settings_defaults(void)
     Settings s;
     settings_defaults(&s);
     ASSERT_EQ_INT("linenum on", 1, s.show_linenum);
-    ASSERT_EQ_INT("wrap off", 0, s.word_wrap);
+    ASSERT_EQ_INT("wrap on", 1, s.word_wrap);
     ASSERT_EQ_INT("tab 4", 4, s.tabstop);
     ASSERT_EQ_INT("notepad", THEME_NOTEPAD, s.theme);
 }
@@ -37,7 +37,7 @@ void test_settings_parse_format(void)
 void test_settings_roundtrip_file(void)
 {
     Settings a, b;
-    char path[] = "/tmp/tack-cfg-XXXXXX";
+    char path[] = "/tmp/missnotepad-cfg-XXXXXX";
     int fd = mkstemp(path);
     ASSERT_TRUE("mkstemp", fd >= 0);
     if (fd < 0) {

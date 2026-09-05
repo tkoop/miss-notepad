@@ -1,8 +1,8 @@
-# Tack
+# MissNotepad
 
 **Microsoft Notepad for the Linux command line.**
 
-Tack is a full-screen terminal text editor. It is meant to feel familiar if you
+MissNotepad is a full-screen terminal text editor. It is meant to feel familiar if you
 know Notepad, while running entirely in the terminal (a TUI, not a GUI) — like
 nano, but with a Notepad-style menu bar, mouse support, and pop-up dialogs
 instead of a command line at the bottom.
@@ -23,19 +23,19 @@ ASCII over the document.
 - Cut, copy, paste, select all, undo/redo
 - Search and replace
 - Key-binding themes: **Notepad** (default), **nano**, **vi**, **Emacs**
-- Settings saved to `~/.config/tack/config`
+- Settings saved to `~/.config/missnotepad/config`
 
 ## Build / compile
 
-You need a C11 compiler (`gcc` or `clang`), `make`, and a POSIX system. There
-are no extra libraries to install — Tack talks to the terminal with termios
-and ANSI escapes.
+You need a C11 compiler (`gcc` or `clang`), `make`, and a POSIX system. For
+desktop clipboard support, install `wl-clipboard` on Wayland or `xclip`/`xsel`
+on X11. MissNotepad talks to the terminal with termios and ANSI escapes.
 
 ```sh
 make
 ```
 
-The executable is written to `bin/tack`.
+The executable is written to `bin/miss`.
 
 Debug build:
 
@@ -55,21 +55,21 @@ Copy the binary somewhere on your `PATH`:
 
 ```sh
 make
-sudo cp bin/tack /usr/local/bin/tack
+sudo cp bin/miss /usr/local/bin/miss
 ```
 
-Or keep it local and run `bin/tack`.
+Or keep it local and run `bin/miss`.
 
 ## Run
 
 ```sh
-tack
-tack notes.txt
-tack --help
-tack --version
+miss
+miss notes.txt
+miss --help
+miss --version
 ```
 
-Tack needs a real terminal (not a pipe). It uses the alternate screen buffer
+MissNotepad needs a real terminal (not a pipe). It uses the alternate screen buffer
 and restores your shell when you quit.
 
 ## How to use
@@ -89,7 +89,7 @@ click.
 | Edit   | Undo, Redo, Cut, Copy, Paste, Delete, Select All, Find…, Find Next, Replace… |
 | Format | Word Wrap |
 | View   | Line Numbers; Notepad / nano / vi / Emacs keys |
-| Help   | Keyboard shortcuts, About Tack |
+| Help   | Keyboard shortcuts, About MissNotepad |
 
 Open a menu with **F10**, **Alt+F / E / O / V / H**, or the mouse. Move with
 the arrows, activate with Enter, leave with Esc.
@@ -125,7 +125,7 @@ the arrows, activate with Enter, leave with Esc.
 
 ### vi keys
 
-Tack starts vi theme in **normal** mode (`-- NORMAL --` on the status line).
+MissNotepad starts vi theme in **normal** mode (`-- NORMAL --` on the status line).
 
 | Key | Action |
 |-----|--------|
@@ -156,11 +156,11 @@ Tack starts vi theme in **normal** mode (`-- NORMAL --` on the status line).
 
 ### Settings
 
-Tack reads and writes `~/.config/tack/config`:
+MissNotepad reads and writes `~/.config/missnotepad/config`:
 
 ```
 show_linenum=1
-word_wrap=0
+word_wrap=1
 tabstop=4
 key_theme=notepad
 ```
@@ -180,15 +180,15 @@ checks. All tests must pass.
 ## Project layout
 
 ```
-include/tack/   Public headers
+include/missnotepad/   Public headers
 src/            Implementation
 tests/          Unit tests and runner
-bin/tack        Built executable
+bin/miss               Built executable
 Makefile
 CHANGELOG.md
 ```
 
 ## Version
 
-Tack **1.0.0** — the first complete release of the Notepad-for-the-terminal
+MissNotepad **1.0.0** — the first complete release of the Notepad-for-the-terminal
 vision.

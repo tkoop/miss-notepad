@@ -1,5 +1,5 @@
-#include "tack/editor.h"
-#include "tack/fileio.h"
+#include "missnotepad/editor.h"
+#include "missnotepad/fileio.h"
 #include "test.h"
 
 #include <stdio.h>
@@ -8,7 +8,7 @@
 
 void test_file_write_and_read(void)
 {
-    char path[] = "/tmp/tack-write-XXXXXX";
+    char path[] = "/tmp/missnotepad-write-XXXXXX";
     int fd = mkstemp(path);
     char *data = NULL;
     size_t len = 0;
@@ -29,7 +29,7 @@ void test_file_write_and_read(void)
 void test_editor_save_roundtrip(void)
 {
     Editor e;
-    char path[] = "/tmp/tack-save-XXXXXX";
+    char path[] = "/tmp/missnotepad-save-XXXXXX";
     int fd = mkstemp(path);
     char *data = NULL;
     size_t len = 0;
@@ -81,7 +81,7 @@ void test_editor_ctrl_s(void)
 {
     Editor e;
     Event ev;
-    char path[] = "/tmp/tack-ctrls-XXXXXX";
+    char path[] = "/tmp/missnotepad-ctrls-XXXXXX";
     int fd = mkstemp(path);
 
     ASSERT_TRUE("mkstemp", fd >= 0);

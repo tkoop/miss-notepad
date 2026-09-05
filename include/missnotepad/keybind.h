@@ -1,9 +1,9 @@
-#ifndef TACK_KEYBIND_H
-#define TACK_KEYBIND_H
+#ifndef MISSNOTEPAD_KEYBIND_H
+#define MISSNOTEPAD_KEYBIND_H
 
-#include "tack/action.h"
-#include "tack/keys.h"
-#include "tack/settings.h"
+#include "missnotepad/action.h"
+#include "missnotepad/keys.h"
+#include "missnotepad/settings.h"
 
 #define VI_INSERT 0
 #define VI_NORMAL 1

@@ -1,8 +1,8 @@
-#ifndef TACK_TERM_H
-#define TACK_TERM_H
+#ifndef MISSNOTEPAD_TERM_H
+#define MISSNOTEPAD_TERM_H
 
-#include "tack/keys.h"
-#include "tack/screen.h"
+#include "missnotepad/keys.h"
+#include "missnotepad/screen.h"
 
 int term_available(void);
 int term_init(void);

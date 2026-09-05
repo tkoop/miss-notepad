@@ -1,5 +1,5 @@
-#ifndef TACK_SCREEN_H
-#define TACK_SCREEN_H
+#ifndef MISSNOTEPAD_SCREEN_H
+#define MISSNOTEPAD_SCREEN_H
 
 #include <stdint.h>
 

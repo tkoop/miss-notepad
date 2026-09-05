@@ -1,11 +1,11 @@
-#include "tack/version.h"
+#include "missnotepad/version.h"
 
-const char *tack_version_string(void)
+const char *missnotepad_version_string(void)
 {
-    return TACK_VERSION_STRING;
+    return MISSNOTEPAD_VERSION_STRING;
 }
 
-const char *tack_name(void)
+const char *missnotepad_name(void)
 {
-    return TACK_NAME;
+    return MISSNOTEPAD_NAME;
 }

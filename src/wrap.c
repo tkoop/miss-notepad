@@ -1,6 +1,6 @@
-#include "tack/wrap.h"
+#include "missnotepad/wrap.h"
 
-#include "tack/utf8.h"
+#include "missnotepad/utf8.h"
 
 size_t wrap_line_starts(const char *line, size_t len, int tabstop, int width,
                         size_t *starts, size_t max_starts)

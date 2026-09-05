@@ -1,4 +1,4 @@
-#include "tack/menu.h"
+#include "missnotepad/menu.h"
 
 #include <ctype.h>
 #include <stdio.h>
@@ -8,7 +8,7 @@ static void add_item(Menu *m, const char *label, const char *accel, char hot,
                      Action act, int checkable)
 {
     MenuItem *it;
-    if (m->count >= TACK_ITEM_MAX) {
+    if (m->count >= MISSNOTEPAD_ITEM_MAX) {
         return;
     }
     it = &m->items[m->count++];
@@ -23,7 +23,7 @@ static void add_item(Menu *m, const char *label, const char *accel, char hot,
 static void add_sep(Menu *m)
 {
     MenuItem *it;
-    if (m->count >= TACK_ITEM_MAX) {
+    if (m->count >= MISSNOTEPAD_ITEM_MAX) {
         return;
     }
     it = &m->items[m->count++];
@@ -88,7 +88,7 @@ void menubar_init_notepad(MenuBar *m)
     u->label = "Help";
     u->hot = 'H';
     add_item(u, "Keyboard shortcuts", NULL, 'K', ACT_HELP_KEYS, 0);
-    add_item(u, "About Tack", NULL, 'A', ACT_ABOUT, 0);
+    add_item(u, "About MissNotepad", NULL, 'A', ACT_ABOUT, 0);
 
     menubar_layout(m);
 }

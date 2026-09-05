@@ -1,5 +1,5 @@
-#ifndef TACK_FILEIO_H
-#define TACK_FILEIO_H
+#ifndef MISSNOTEPAD_FILEIO_H
+#define MISSNOTEPAD_FILEIO_H
 
 #include <stddef.h>
 

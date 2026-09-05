@@ -1,5 +1,5 @@
-#ifndef TACK_KEYS_H
-#define TACK_KEYS_H
+#ifndef MISSNOTEPAD_KEYS_H
+#define MISSNOTEPAD_KEYS_H
 
 #include <stddef.h>
 #include <stdint.h>

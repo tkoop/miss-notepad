@@ -1,6 +1,6 @@
-#include "tack/editor.h"
-#include "tack/search.h"
-#include "tack/wrap.h"
+#include "missnotepad/editor.h"
+#include "missnotepad/search.h"
+#include "missnotepad/wrap.h"
 #include "test.h"
 
 #include <stdlib.h>

@@ -1,8 +1,8 @@
-#ifndef TACK_DIALOG_H
-#define TACK_DIALOG_H
+#ifndef MISSNOTEPAD_DIALOG_H
+#define MISSNOTEPAD_DIALOG_H
 
-#include "tack/keys.h"
-#include "tack/screen.h"
+#include "missnotepad/keys.h"
+#include "missnotepad/screen.h"
 
 typedef enum {
     DLG_NONE = 0,

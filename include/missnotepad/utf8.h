@@ -1,10 +1,10 @@
-#ifndef TACK_UTF8_H
-#define TACK_UTF8_H
+#ifndef MISSNOTEPAD_UTF8_H
+#define MISSNOTEPAD_UTF8_H
 
 #include <stddef.h>
 #include <stdint.h>
 
-#define TACK_TABSTOP_DEFAULT 4
+#define MISSNOTEPAD_TABSTOP_DEFAULT 4
 
 size_t utf8_next(const char *s, size_t len, size_t i);
 size_t utf8_prev(const char *s, size_t len, size_t i);

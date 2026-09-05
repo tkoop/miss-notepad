@@ -1,5 +1,5 @@
-#ifndef TACK_ACTION_H
-#define TACK_ACTION_H
+#ifndef MISSNOTEPAD_ACTION_H
+#define MISSNOTEPAD_ACTION_H
 
 typedef enum {
     ACT_NONE = 0,

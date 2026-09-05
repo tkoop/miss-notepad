@@ -1,6 +1,6 @@
-#include "tack/settings.h"
+#include "missnotepad/settings.h"
 
-#include "tack/fileio.h"
+#include "missnotepad/fileio.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -9,7 +9,7 @@
 void settings_defaults(Settings *s)
 {
     s->show_linenum = 1;
-    s->word_wrap = 0;
+    s->word_wrap = 1;
     s->tabstop = 4;
     s->theme = THEME_NOTEPAD;
 }

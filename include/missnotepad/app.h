@@ -1,12 +1,12 @@
-#ifndef TACK_APP_H
-#define TACK_APP_H
+#ifndef MISSNOTEPAD_APP_H
+#define MISSNOTEPAD_APP_H
 
-#include "tack/action.h"
-#include "tack/dialog.h"
-#include "tack/editor.h"
-#include "tack/keybind.h"
-#include "tack/menu.h"
-#include "tack/settings.h"
+#include "missnotepad/action.h"
+#include "missnotepad/dialog.h"
+#include "missnotepad/editor.h"
+#include "missnotepad/keybind.h"
+#include "missnotepad/menu.h"
+#include "missnotepad/settings.h"
 
 typedef enum { FOCUS_EDIT = 0, FOCUS_MENU = 1, FOCUS_DIALOG = 2 } AppFocus;
 

@@ -1,5 +1,5 @@
-#ifndef TACK_WRAP_H
-#define TACK_WRAP_H
+#ifndef MISSNOTEPAD_WRAP_H
+#define MISSNOTEPAD_WRAP_H
 
 #include <stddef.h>
 

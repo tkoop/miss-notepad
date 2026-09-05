@@ -1,5 +1,5 @@
-#ifndef TACK_BUFFER_H
-#define TACK_BUFFER_H
+#ifndef MISSNOTEPAD_BUFFER_H
+#define MISSNOTEPAD_BUFFER_H
 
 #include <stddef.h>
 

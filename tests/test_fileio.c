@@ -1,4 +1,4 @@
-#include "tack/fileio.h"
+#include "missnotepad/fileio.h"
 #include "test.h"
 
 #include <stdio.h>
@@ -7,7 +7,7 @@
 
 void test_file_read_all(void)
 {
-    char path[] = "/tmp/tack-test-XXXXXX";
+    char path[] = "/tmp/missnotepad-test-XXXXXX";
     int fd = mkstemp(path);
     char *data = NULL;
     size_t len = 0;
@@ -39,7 +39,7 @@ void test_file_read_missing(void)
 {
     char *data = NULL;
     size_t len = 0;
-    int rc = file_read_all("/tmp/tack-does-not-exist-xyzzy", &data, &len);
+    int rc = file_read_all("/tmp/missnotepad-does-not-exist-xyzzy", &data, &len);
     ASSERT_EQ_INT("not found", 1, rc);
     ASSERT_NULL("no data", data);
 }

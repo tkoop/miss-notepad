@@ -19,7 +19,7 @@ LIB_OBJS := $(patsubst $(SRC_DIR)/%.c,$(BUILD_DIR)/%.o,$(LIB_SRCS))
 TEST_SRCS := $(wildcard $(TEST_DIR)/*.c)
 TEST_OBJS := $(patsubst $(TEST_DIR)/%.c,$(BUILD_DIR)/tests/%.o,$(TEST_SRCS))
 
-APP      := $(BIN_DIR)/tack
+APP      := $(BIN_DIR)/miss
 TEST_BIN := $(BUILD_DIR)/run_tests
 
 .PHONY: all test clean dirs
@@ -48,10 +48,10 @@ $(TEST_BIN): $(LIB_OBJS) $(TEST_OBJS)
 test: $(TEST_BIN) $(APP)
 	$(TEST_BIN)
 	@echo "--- CLI checks ---"
-	$(APP) --version | grep -q "Tack "
-	$(APP) --help | grep -q "Usage: tack"
-	$(APP) -v | grep -q "Tack "
-	$(APP) -h | grep -q "Usage: tack"
+	$(APP) --version | grep -q "MissNotepad "
+	$(APP) --help | grep -qF "Usage: miss [FILE]"
+	$(APP) -v | grep -q "MissNotepad "
+	$(APP) -h | grep -qF "Usage: miss [FILE]"
 	! $(APP) --bogus >/dev/null 2>&1
 	! $(APP) </dev/null >/dev/null 2>&1
 	@echo "All tests passed."

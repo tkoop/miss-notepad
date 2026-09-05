@@ -1,6 +1,6 @@
-#include "tack/screen.h"
+#include "missnotepad/screen.h"
 
-#include "tack/utf8.h"
+#include "missnotepad/utf8.h"
 
 #include <stdlib.h>
 #include <string.h>
