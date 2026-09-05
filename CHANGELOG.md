@@ -5,6 +5,18 @@ All notable changes to MissNotepad are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] — 2026-09-05
+
+### Fixed
+
+- Word wrap now breaks visual rows at the same points used for cursor
+  navigation, so wrapped lines match the caret logic
+- Down/Up move between screen lines of a wrapped file line, keeping the
+  same screen column (clamped to the row width), and the caret is drawn
+  at the right column on wrapped rows
+- Mouse clicks (and drag-selection) now resolve to the correct file line
+  and column when word wrap splits a file line across screen lines
+
 ## [1.0.0] — 2026-08-18
 
 ### Added

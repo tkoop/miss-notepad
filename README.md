@@ -190,5 +190,5 @@ CHANGELOG.md
 
 ## Version
 
-MissNotepad **1.0.0** — the first complete release of the Notepad-for-the-terminal
+MissNotepad **1.1.0** — the Notepad-for-the-terminal
 vision.
