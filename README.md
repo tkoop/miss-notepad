@@ -51,14 +51,82 @@ make clean
 
 ## Install
 
-Copy the binary somewhere on your `PATH`:
+MissNotepad has no hard dependencies beyond a C11 compiler, `make`, and a
+POSIX system. Pick your distro below to install the build tools — plus the
+optional clipboard helpers for desktop copy/paste — then build.
+
+### Debian / Ubuntu / Mint / Pop!_OS
 
 ```sh
+sudo apt update
+sudo apt install build-essential git wl-clipboard xclip
+```
+
+### Fedora
+
+```sh
+sudo dnf install gcc make git wl-clipboard xclip
+```
+
+### Arch Linux / Manjaro / EndeavourOS
+
+```sh
+sudo pacman -S --needed base-devel git wl-clipboard xclip
+```
+
+### openSUSE
+
+```sh
+sudo zypper install gcc make git wl-clipboard xclip
+```
+
+### Alpine Linux
+
+```sh
+sudo apk add build-base git wl-clipboard xclip
+```
+
+(`build-base` and `wl-clipboard` live in the `community` repository, which is
+enabled by default on recent releases.)
+
+### Void Linux
+
+```sh
+sudo xbps-install -S base-devel git wl-clipboard xclip
+```
+
+### NixOS
+
+```sh
+nix-shell -p gcc make git wl-clipboard xclip
+```
+
+(`base-devel` on Arch/Void and `build-essential`/`build-base` on Debian/Alpine
+each include the compiler and `make`. `clang` works in place of `gcc` on any
+distro.)
+
+### Build and install (all distros)
+
+```sh
+git clone https://github.com/tkoop/miss-notepad.git
+cd miss-notepad
 make
 sudo cp bin/miss /usr/local/bin/miss
 ```
 
-Or keep it local and run `bin/miss`.
+Or keep it local and run `bin/miss`. See **Build / compile** above for debug
+builds and `make clean`.
+
+### Clipboard support (optional)
+
+MissNotepad only needs a helper binary for desktop clipboard integration; the
+commands above install both flavors, but you can trim to what you use:
+
+- **Wayland:** `wl-clipboard` (provides `wl-copy` / `wl-paste`)
+- **X11:** `xclip` (or `xsel`)
+
+Without a helper, everything else still works — text selection still goes
+through the terminal.
 
 ## Run
 
@@ -190,5 +258,5 @@ CHANGELOG.md
 
 ## Version
 
-MissNotepad **1.1.0** — the Notepad-for-the-terminal
+MissNotepad **1.1.1** — the Notepad-for-the-terminal
 vision.

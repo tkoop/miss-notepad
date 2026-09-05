@@ -5,6 +5,14 @@ All notable changes to MissNotepad are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.1] — 2026-09-05
+
+### Added
+
+- README install instructions for the major Linux distributions
+  (Debian/Ubuntu, Fedora, Arch, openSUSE, Alpine, Void, NixOS) covering
+  build tools, the optional clipboard helpers, and clone/build/install steps
+
 ## [1.1.0] — 2026-09-05
 
 ### Fixed
