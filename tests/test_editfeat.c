@@ -118,3 +118,42 @@ void test_editor_word_wrap_render(void)
     screen_free(&s);
     editor_free(&e);
 }
+
+void test_editor_word_wrap_down_insert(void)
+{
+    Editor e;
+    Screen s;
+    Event ev;
+    editor_init(&e);
+    buf_load_mem(&e.buf, "abcdefghijKLMNOPQRST\nxyz", 24);
+    e.word_wrap = 1;
+    e.show_linenum = 0;
+    editor_set_view(&e, 6, 10);
+    ev.kind = EV_KEY;
+    ev.key = KEY_DOWN;
+    ev.ch = 0;
+    ev.mods = 0;
+    ev.mx = ev.my = ev.mbtn = ev.mdown = 0;
+    editor_handle_event(&e, &ev);
+    ASSERT_EQ_INT("same file line", 0, (int)e.cy);
+    ASSERT_EQ_INT("next wrapped segment", 10, (int)e.cx);
+    ev.key = KEY_CHAR;
+    ev.ch = 'Q';
+    editor_handle_event(&e, &ev);
+    ASSERT_EQ_INT("inserted in wrapped line", 11, (int)e.cx);
+    ev.key = KEY_DOWN;
+    ev.ch = 0;
+    editor_handle_event(&e, &ev);
+    ev.key = KEY_CHAR;
+    ev.ch = 'R';
+    editor_handle_event(&e, &ev);
+    screen_init(&s);
+    screen_resize(&s, 8, 10);
+    editor_render(&e, &s);
+    ASSERT_EQ_INT("inserted on wrapped line", (int)'R',
+                  (int)screen_get(&s, 3, 1));
+    ASSERT_EQ_INT("first insert on wrapped line", (int)'Q',
+                  (int)screen_get(&s, 2, 0));
+    screen_free(&s);
+    editor_free(&e);
+}

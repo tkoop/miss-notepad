@@ -277,6 +277,60 @@ int editor_cursor_col(const Editor *e)
     return (int)utf8_col_of(line, len, e->cx, e->tabstop);
 }
 
+static int wrapped_segment_bounds(const Editor *e, size_t row, size_t col,
+                                  size_t *start, size_t *end)
+{
+    size_t len = 0;
+    const char *line = buf_line(&e->buf, row, &len);
+    size_t *starts;
+    size_t count;
+    size_t segment = 0;
+    size_t i;
+
+    if (!e->word_wrap) {
+        *start = 0;
+        *end = len;
+        return 0;
+    }
+    starts = malloc((len + 1) * sizeof(*starts));
+    if (starts == NULL) {
+        return -1;
+    }
+    count = wrap_line_starts(line, len, e->tabstop, editor_text_cols(e),
+                             starts, len + 1);
+    for (i = 1; i < count && starts[i] <= col; i++) {
+        segment = i;
+    }
+    *start = starts[segment];
+    *end = segment + 1 < count ? starts[segment + 1] : len;
+    free(starts);
+    return 0;
+}
+
+static void move_to_visual_col(Editor *e, size_t row, size_t segment_start,
+                               int visual_col)
+{
+    size_t len = 0;
+    const char *line = buf_line(&e->buf, row, &len);
+    size_t start = 0;
+    size_t end = len;
+    int start_col;
+    int end_col;
+    int target_col;
+
+    if (wrapped_segment_bounds(e, row, segment_start, &start, &end) != 0) {
+        e->cx = 0;
+        return;
+    }
+    start_col = (int)utf8_col_of(line, len, start, e->tabstop);
+    end_col = (int)utf8_col_of(line, len, end, e->tabstop);
+    target_col = start_col + visual_col;
+    if (target_col > end_col) {
+        target_col = end_col;
+    }
+    e->cx = utf8_byte_at_col(line, len, (size_t)target_col, e->tabstop);
+}
+
 static void remember_goal(Editor *e)
 {
     e->goal_col = editor_cursor_col(e);
@@ -353,6 +407,32 @@ void editor_move_up(Editor *e)
 
 void editor_move_down(Editor *e)
 {
+    if (e->word_wrap) {
+        size_t len = 0;
+        const char *line = buf_line(&e->buf, e->cy, &len);
+        size_t start = 0;
+        size_t end = len;
+        int current_col;
+
+        if (wrapped_segment_bounds(e, e->cy, e->cx, &start, &end) == 0) {
+            current_col = editor_cursor_col(e) -
+                          (int)utf8_col_of(line, len, start, e->tabstop);
+            if (end < len) {
+                e->cx = end;
+                move_to_visual_col(e, e->cy, e->cx, current_col);
+                e->goal_col = current_col;
+                editor_scroll_into_view(e);
+                return;
+            }
+            if (e->cy + 1 < buf_line_count(&e->buf)) {
+                e->cy++;
+                move_to_visual_col(e, e->cy, 0, current_col);
+                e->goal_col = current_col;
+                editor_scroll_into_view(e);
+                return;
+            }
+        }
+    }
     if (e->cy + 1 < buf_line_count(&e->buf)) {
         e->cy++;
         apply_goal(e);
@@ -1031,6 +1111,48 @@ static int in_sel(const Editor *e, size_t row, size_t col)
     return 1;
 }
 
+static size_t visual_rows_before(const Editor *e, size_t row)
+{
+    size_t total = 0;
+    size_t i;
+    int width = editor_text_cols(e);
+
+    if (!e->word_wrap) {
+        return row;
+    }
+    for (i = 0; i < row; i++) {
+        size_t len = 0;
+        const char *line = buf_line(&e->buf, i, &len);
+        total += wrap_line_starts(line, len, e->tabstop, width, NULL, 0);
+    }
+    return total;
+}
+
+static size_t visual_segment(const Editor *e, size_t row, size_t col)
+{
+    size_t len = 0;
+    const char *line = buf_line(&e->buf, row, &len);
+    size_t *starts;
+    size_t count;
+    size_t segment = 0;
+    size_t i;
+
+    if (!e->word_wrap || len == 0) {
+        return 0;
+    }
+    starts = malloc((len + 1) * sizeof(*starts));
+    if (starts == NULL) {
+        return 0;
+    }
+    count = wrap_line_starts(line, len, e->tabstop, editor_text_cols(e),
+                             starts, len + 1);
+    for (i = 1; i < count && starts[i] <= col; i++) {
+        segment = i;
+    }
+    free(starts);
+    return segment;
+}
+
 static void render_text(const Editor *e, Screen *s, int y0, int x0, int h, int w)
 {
     int r = 0;
@@ -1166,7 +1288,14 @@ void editor_render(const Editor *e, Screen *s)
         render_text(e, s, text_y, gutter, text_h, tw);
     }
 
-    cur_y = text_y + (int)(e->cy - e->row_off);
+    if (e->word_wrap) {
+        size_t cursor_row = visual_rows_before(e, e->cy) +
+                            visual_segment(e, e->cy, e->cx);
+        size_t first_row = visual_rows_before(e, e->row_off);
+        cur_y = text_y + (int)(cursor_row - first_row);
+    } else {
+        cur_y = text_y + (int)(e->cy - e->row_off);
+    }
     cur_x = editor_gutter_width(e) + editor_cursor_col(e) - (int)e->col_off;
     if (cur_x < 0) {
         cur_x = 0;
