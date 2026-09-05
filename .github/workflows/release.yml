@@ -1,0 +1,59 @@
+name: Release
+
+# On a v* tag push: test, build static binaries (x86_64 + aarch64),
+# build .deb and .rpm, and attach everything to the GitHub Release.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run test suite
+        run: make test
+
+      - name: Build static binary (x86_64)
+        run: |
+          make static
+          cp bin/miss miss-linux-x86_64
+
+      - name: Build static binary (aarch64, cross in Debian container)
+        run: |
+          docker run --rm -v "$PWD:/src" -w /src debian:bookworm-slim sh -c "
+            apt-get update -qq &&
+            apt-get install -y -qq gcc-aarch64-linux-gnu make >/dev/null &&
+            make clean >/dev/null &&
+            make CC=aarch64-linux-gnu-gcc LDFLAGS=-static all >/dev/null"
+          cp bin/miss miss-linux-aarch64
+
+      - name: Package static tarballs + checksums
+        run: |
+          for arch in x86_64 aarch64; do
+            mkdir -p stage
+            cp "miss-linux-${arch}" stage/miss
+            tar -czf "miss-linux-${arch}.tar.gz" -C stage miss
+            rm -rf stage
+            sha256sum "miss-linux-${arch}.tar.gz" > "miss-linux-${arch}.tar.gz.sha256"
+          done
+
+      - name: Build .deb
+        run: ./packaging/build-deb.sh
+
+      - name: Build .rpm
+        run: ./packaging/build-rpm.sh
+
+      - name: Attach assets to the GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release upload "$GITHUB_REF_NAME" \
+            miss-linux-x86_64.tar.gz miss-linux-x86_64.tar.gz.sha256 \
+            miss-linux-aarch64.tar.gz miss-linux-aarch64.tar.gz.sha256 \
+            dist/missnotepad_*.deb dist/*.rpm \
+            --clobber

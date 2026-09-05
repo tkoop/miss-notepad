@@ -2,8 +2,11 @@
 *.a
 *.d
 /build/
+/bin/
 /tests/run_tests
 *.tmp
 *~
 .cache/
 compile_commands.json
+/dist/
+/.rpmbuild/

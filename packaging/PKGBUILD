@@ -1,0 +1,22 @@
+# This file is for uploading to the AUR as 'missnotepad'.
+# Maintainer: Tim Koop <tkoop@users.noreply.github.com>
+pkgname=missnotepad
+pkgver=1.1.1
+pkgrel=1
+pkgdesc='Notepad-style text editor for the terminal'
+arch=('x86_64')
+url='https://github.com/tkoop/miss-notepad'
+license=('MIT')
+depends=('glibc')
+source=("${url}/archive/refs/tags/v${pkgver}.tar.gz")
+sha256sums=('a82c3aea4adb3682706447d36ed9bce5dba2db4497ac152b0230e8081a374b58')
+
+build() {
+  cd "miss-notepad-${pkgver}"
+  make
+}
+
+package() {
+  cd "miss-notepad-${pkgver}"
+  make install DESTDIR="${pkgdir}" PREFIX=/usr
+}

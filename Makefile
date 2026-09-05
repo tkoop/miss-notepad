@@ -22,7 +22,10 @@ TEST_OBJS := $(patsubst $(TEST_DIR)/%.c,$(BUILD_DIR)/tests/%.o,$(TEST_SRCS))
 APP      := $(BIN_DIR)/miss
 TEST_BIN := $(BUILD_DIR)/run_tests
 
-.PHONY: all test clean dirs
+PREFIX  ?= /usr/local
+BINDIR  := $(PREFIX)/bin
+
+.PHONY: all test clean dirs install uninstall static
 
 all: dirs $(APP)
 
@@ -55,6 +58,23 @@ test: $(TEST_BIN) $(APP)
 	! $(APP) --bogus >/dev/null 2>&1
 	! $(APP) </dev/null >/dev/null 2>&1
 	@echo "All tests passed."
+
+# Install/uninstall. Override PREFIX for distro packaging, e.g.
+#   make install PREFIX=/usr
+#   make install DESTDIR=/tmp/stage PREFIX=/usr
+install: $(APP)
+	install -d $(DESTDIR)$(BINDIR)
+	install -m 0755 $(APP) $(DESTDIR)$(BINDIR)/miss
+
+uninstall:
+	rm -f $(DESTDIR)$(BINDIR)/miss
+
+# Fully static build: the resulting bin/miss has no shared-library
+# dependencies and runs on any Linux (glibc or musl). Always rebuilds
+# from scratch so no stale dynamic objects linger.
+static:
+	$(MAKE) clean
+	$(MAKE) LDFLAGS="$(LDFLAGS) -static" $(APP)
 
 clean:
 	rm -rf $(BUILD_DIR)

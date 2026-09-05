@@ -25,6 +25,25 @@ ASCII over the document.
 - Key-binding themes: **Notepad** (default), **nano**, **vi**, **Emacs**
 - Settings saved to `~/.config/missnotepad/config`
 
+## Quick install
+
+One command installs the latest static binary — no compiler, no root, no
+distro-specific steps (works on glibc and musl systems, x86_64 and aarch64):
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/tkoop/miss-notepad/master/scripts/install.sh | sh
+```
+
+The script downloads a static binary from
+[Releases](https://github.com/tkoop/miss-notepad/releases), verifies its
+SHA-256 checksum, and installs to `~/.local/bin` (override the destination
+with `MISS_INSTALL_DIR=/some/path sh install.sh`, or pass a version like
+`install.sh 1.1.1`).
+
+Prefer a native package? The release page also carries a `.deb`
+(Debian/Ubuntu/Mint) and an `.rpm` (Fedora/openSUSE); Arch users can use
+`packaging/PKGBUILD` from this repo (AUR submission pending).
+
 ## Build / compile
 
 You need a C11 compiler (`gcc` or `clang`), `make`, and a POSIX system. For
@@ -49,7 +68,21 @@ Clean:
 make clean
 ```
 
-## Install
+Fully static build (runs on any Linux, glibc or musl — this is what the
+release binaries use):
+
+```sh
+make static
+```
+
+Install to `/usr/local/bin` (override with `PREFIX=...`, or stage a
+package with `DESTDIR=...`):
+
+```sh
+sudo make install
+```
+
+## Install (from source)
 
 MissNotepad has no hard dependencies beyond a C11 compiler, `make`, and a
 POSIX system. Pick your distro below to install the build tools — plus the
