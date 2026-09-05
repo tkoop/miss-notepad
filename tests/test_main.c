@@ -48,6 +48,8 @@ void test_editor_select_all_and_find(void);
 void test_editor_replace_all(void);
 void test_editor_word_wrap_render(void);
 void test_editor_word_wrap_down_insert(void);
+void test_editor_word_wrap_down_screen_line(void);
+void test_editor_word_wrap_click(void);
 void test_mouse_parse(void);
 void test_dialog_type_and_ok(void);
 void test_dialog_esc_cancel(void);
@@ -134,6 +136,8 @@ int main(void)
         {"editor_replace_all", test_editor_replace_all},
         {"editor_word_wrap_render", test_editor_word_wrap_render},
         {"editor_word_wrap_down_insert", test_editor_word_wrap_down_insert},
+        {"editor_word_wrap_down_screen_line", test_editor_word_wrap_down_screen_line},
+        {"editor_word_wrap_click", test_editor_word_wrap_click},
         {"mouse_parse", test_mouse_parse},
         {"dialog_type_and_ok", test_dialog_type_and_ok},
         {"dialog_esc_cancel", test_dialog_esc_cancel},

@@ -19,6 +19,9 @@ static int is_word(unsigned char c)
 }
 
 static void remember_goal(Editor *e);
+static size_t visual_rows_before(const Editor *e, size_t row);
+static void locate_visual_row(const Editor *e, size_t vis, size_t *out_row,
+                              size_t *out_start, size_t *out_end);
 
 int editor_init(Editor *e)
 {
@@ -215,6 +218,44 @@ void editor_click(Editor *e, int text_y, int text_x)
     int col;
     int last = (int)buf_line_count(&e->buf) - 1;
     int gy = text_y + (int)e->row_off;
+
+    if (e->word_wrap) {
+        /* The clicked screen row is a visual row: map it to the file row
+           and wrapped segment it belongs to. */
+        size_t row = 0;
+        size_t seg_start = 0;
+        size_t seg_end = 0;
+        size_t target;
+        size_t seg_end_col;
+
+        if (text_y < 0) {
+            text_y = 0;
+        }
+        locate_visual_row(e, visual_rows_before(e, e->row_off) +
+                                 (size_t)text_y,
+                          &row, &seg_start, &seg_end);
+        e->cy = row;
+        line = buf_line(&e->buf, e->cy, &len);
+        col = text_x < 0 ? 0 : text_x;
+        target = (size_t)utf8_col_of(line, len, seg_start, e->tabstop) +
+                 (size_t)col;
+        seg_end_col = (size_t)utf8_col_of(line, len, seg_end, e->tabstop);
+        if (target > seg_end_col) {
+            target = seg_end_col;
+        }
+        if (target == seg_end_col && seg_end < len &&
+            seg_end_col > (size_t)utf8_col_of(line, len, seg_start,
+                                              e->tabstop)) {
+            /* The clamp landed on the first byte of the next visual row.
+               Keep the caret on the clicked row instead, on its last
+               character. */
+            target--;
+        }
+        e->cx = utf8_byte_at_col(line, len, target, e->tabstop);
+        remember_goal(e);
+        editor_scroll_into_view(e);
+        return;
+    }
     if (gy < 0) {
         gy = 0;
     }
@@ -398,6 +439,36 @@ void editor_move_right(Editor *e)
 
 void editor_move_up(Editor *e)
 {
+    if (e->word_wrap) {
+        size_t len = 0;
+        const char *line = buf_line(&e->buf, e->cy, &len);
+        size_t start = 0;
+        size_t end = len;
+        int current_col;
+
+        if (wrapped_segment_bounds(e, e->cy, e->cx, &start, &end) == 0) {
+            current_col = editor_cursor_col(e) -
+                          (int)utf8_col_of(line, len, start, e->tabstop);
+            if (start > 0) {
+                /* Move to the previous visual row of the same file line,
+                   keeping the same screen column. */
+                move_to_visual_col(e, e->cy, start - 1, current_col);
+                e->goal_col = editor_cursor_col(e);
+                editor_scroll_into_view(e);
+                return;
+            }
+            if (e->cy > 0) {
+                /* Move to the last visual row of the previous file line. */
+                e->cy--;
+                move_to_visual_col(e, e->cy,
+                                   buf_line_len(&e->buf, e->cy),
+                                   current_col);
+                e->goal_col = editor_cursor_col(e);
+                editor_scroll_into_view(e);
+                return;
+            }
+        }
+    }
     if (e->cy > 0) {
         e->cy--;
         apply_goal(e);
@@ -420,14 +491,14 @@ void editor_move_down(Editor *e)
             if (end < len) {
                 e->cx = end;
                 move_to_visual_col(e, e->cy, e->cx, current_col);
-                e->goal_col = current_col;
+                e->goal_col = editor_cursor_col(e);
                 editor_scroll_into_view(e);
                 return;
             }
             if (e->cy + 1 < buf_line_count(&e->buf)) {
                 e->cy++;
                 move_to_visual_col(e, e->cy, 0, current_col);
-                e->goal_col = current_col;
+                e->goal_col = editor_cursor_col(e);
                 editor_scroll_into_view(e);
                 return;
             }
@@ -1153,6 +1224,55 @@ static size_t visual_segment(const Editor *e, size_t row, size_t col)
     return segment;
 }
 
+/* Map an absolute visual row (counting wrapped rows over the whole
+   document) to the file row and the byte offsets of its visual row
+   segment. Clicks past the last visual row resolve to the end of the
+   document. */
+static void locate_visual_row(const Editor *e, size_t vis, size_t *out_row,
+                              size_t *out_start, size_t *out_end)
+{
+    size_t nlines = buf_line_count(&e->buf);
+    size_t i;
+    int width = editor_text_cols(e);
+
+    if (nlines == 0) {
+        *out_row = 0;
+        *out_start = 0;
+        *out_end = 0;
+        return;
+    }
+    for (i = 0; i < nlines; i++) {
+        size_t len = 0;
+        const char *line = buf_line(&e->buf, i, &len);
+        size_t count = 1;
+        if (e->word_wrap) {
+            count = wrap_line_starts(line, len, e->tabstop, width, NULL, 0);
+        }
+        if (vis < count) {
+            size_t start = 0;
+            size_t end = len;
+            if (e->word_wrap && count > 1) {
+                size_t *starts = malloc((len + 1) * sizeof(*starts));
+                if (starts != NULL) {
+                    wrap_line_starts(line, len, e->tabstop, width, starts,
+                                     len + 1);
+                    start = starts[vis];
+                    end = vis + 1 < count ? starts[vis + 1] : len;
+                    free(starts);
+                }
+            }
+            *out_row = i;
+            *out_start = start;
+            *out_end = end;
+            return;
+        }
+        vis -= count;
+    }
+    *out_row = nlines - 1;
+    *out_start = buf_line_len(&e->buf, nlines - 1);
+    *out_end = *out_start;
+}
+
 static void render_text(const Editor *e, Screen *s, int y0, int x0, int h, int w)
 {
     int r = 0;
@@ -1179,6 +1299,71 @@ static void render_text(const Editor *e, Screen *s, int y0, int x0, int h, int w
             render_gutter_line(s, y0 + r, x0, brow + 1);
         }
         line = buf_line(&e->buf, brow, &len);
+        if (e->word_wrap) {
+            /* Break visual rows at the same wrap points used for cursor
+               navigation so the caret tracks what is on screen. */
+            size_t *starts = malloc((len + 1) * sizeof(*starts));
+            if (starts != NULL) {
+                size_t count = wrap_line_starts(line, len, e->tabstop, w,
+                                                starts, len + 1);
+                size_t seg;
+                size_t pos = 0;
+                for (seg = 0; seg < count && r < h; seg++) {
+                    size_t seg_end = seg + 1 < count ? starts[seg + 1] : len;
+                    while (pos < seg_end) {
+                        uint32_t cp = 0;
+                        size_t n = 1;
+                        int cw;
+                        unsigned char st;
+                        if (utf8_decode(line, len, pos, &cp, &n) != 0) {
+                            cp = (unsigned char)line[pos];
+                            n = 1;
+                        }
+                        if (cp == '\t') {
+                            int ts = e->tabstop > 0 ? e->tabstop : 4;
+                            cw = ts - (x % ts);
+                        } else {
+                            cw = utf8_codepoint_width(cp);
+                            if (cw <= 0) {
+                                cw = 1;
+                            }
+                        }
+                        st = in_sel(e, brow, pos) ? STYLE_SELECT : STYLE_NORMAL;
+                        if (cp == '\t') {
+                            int k;
+                            for (k = 0; k < cw && x < w; k++) {
+                                screen_put(s, y0 + r, x0 + x, (uint32_t)' ',
+                                           st);
+                                x++;
+                            }
+                        } else {
+                            if (x + cw > w) {
+                                break;
+                            }
+                            screen_put(s, y0 + r, x0 + x, cp, st);
+                            x += cw;
+                        }
+                        pos += n;
+                    }
+                    r++;
+                    x = 0;
+                    if (r < h && seg + 1 < count) {
+                        screen_fill(s, y0 + r, x0, w, 1, (uint32_t)' ',
+                                    STYLE_NORMAL);
+                        if (e->show_linenum && x0 > 0) {
+                            screen_fill(s, y0 + r, 0, x0, 1, (uint32_t)' ',
+                                        STYLE_GUTTER);
+                            screen_put(s, y0 + r, x0 - 1, (uint32_t)'|',
+                                       STYLE_GUTTER);
+                        }
+                    }
+                }
+                free(starts);
+                brow++;
+                continue;
+            }
+            /* Allocation failed: fall through to plain rendering. */
+        }
         while (i < len && r < h) {
             uint32_t cp = 0;
             size_t n = 1;
@@ -1292,11 +1477,22 @@ void editor_render(const Editor *e, Screen *s)
         size_t cursor_row = visual_rows_before(e, e->cy) +
                             visual_segment(e, e->cy, e->cx);
         size_t first_row = visual_rows_before(e, e->row_off);
+        size_t seg_start = 0;
+        size_t seg_end = 0;
+        size_t line_len = 0;
+        const char *cur_line = buf_line(&e->buf, e->cy, &line_len);
+
         cur_y = text_y + (int)(cursor_row - first_row);
+        if (wrapped_segment_bounds(e, e->cy, e->cx, &seg_start, &seg_end) == 0) {
+            cur_x = editor_gutter_width(e) + editor_cursor_col(e) -
+                    (int)utf8_col_of(cur_line, line_len, seg_start, e->tabstop);
+        } else {
+            cur_x = editor_gutter_width(e);
+        }
     } else {
         cur_y = text_y + (int)(e->cy - e->row_off);
+        cur_x = editor_gutter_width(e) + editor_cursor_col(e) - (int)e->col_off;
     }
-    cur_x = editor_gutter_width(e) + editor_cursor_col(e) - (int)e->col_off;
     if (cur_x < 0) {
         cur_x = 0;
     }

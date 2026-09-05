@@ -119,6 +119,45 @@ void test_editor_word_wrap_render(void)
     editor_free(&e);
 }
 
+void test_editor_word_wrap_click(void)
+{
+    Editor e;
+    editor_init(&e);
+    /* Width 10 wraps line 0 into visual rows "aaaa " and "bbbbb cccc";
+       line 1 ("second") is the third visual row. */
+    buf_load_mem(&e.buf, "aaaa bbbbb cccc\nsecond", 22);
+    e.word_wrap = 1;
+    e.show_linenum = 0;
+    editor_set_view(&e, 6, 10);
+
+    editor_click(&e, 1, 2);
+    ASSERT_EQ_INT("click: wrapped row file line", 0, (int)e.cy);
+    ASSERT_EQ_INT("click: col within segment", 7, (int)e.cx);
+
+    editor_click(&e, 2, 3);
+    ASSERT_EQ_INT("click: next file line", 1, (int)e.cy);
+    ASSERT_EQ_INT("click: col on next line", 3, (int)e.cx);
+
+    editor_click(&e, 1, 0);
+    ASSERT_EQ_INT("click: start of wrapped row", 5, (int)e.cx);
+
+    editor_click(&e, 1, 12);
+    ASSERT_EQ_INT("click: past row end clamps", 0, (int)e.cy);
+    ASSERT_EQ_INT("click: clamped to row end", 15, (int)e.cx);
+
+    /* Clamping on a non-final visual row must stay on that row (byte 4 is
+       the trailing space of "aaaa ") instead of jumping to the next one. */
+    editor_click(&e, 0, 12);
+    ASSERT_EQ_INT("click: first row past end", 0, (int)e.cy);
+    ASSERT_EQ_INT("click: stays on first row", 4, (int)e.cx);
+
+    editor_click(&e, 5, 0);
+    ASSERT_EQ_INT("click: below document", 1, (int)e.cy);
+    ASSERT_EQ_INT("click: end of document", 6, (int)e.cx);
+
+    editor_free(&e);
+}
+
 void test_editor_word_wrap_down_insert(void)
 {
     Editor e;
@@ -154,6 +193,59 @@ void test_editor_word_wrap_down_insert(void)
                   (int)screen_get(&s, 3, 1));
     ASSERT_EQ_INT("first insert on wrapped line", (int)'Q',
                   (int)screen_get(&s, 2, 0));
+    screen_free(&s);
+    editor_free(&e);
+}
+
+void test_editor_word_wrap_down_screen_line(void)
+{
+    Editor e;
+    Screen s;
+    editor_init(&e);
+    /* Text width 10 wraps line 0 at the word boundary into the visual
+       rows "aaaa " (bytes 0-4) and "bbbbb cccc" (bytes 5-14). */
+    buf_load_mem(&e.buf, "aaaa bbbbb cccc\nsecond", 22);
+    e.word_wrap = 1;
+    e.show_linenum = 0;
+    editor_set_view(&e, 6, 10);
+
+    e.cy = 0;
+    e.cx = 2; /* screen row 0, screen x 2 */
+    editor_move_down(&e);
+    ASSERT_EQ_INT("same file line", 0, (int)e.cy);
+    ASSERT_EQ_INT("same screen x, next screen line", 7, (int)e.cx);
+
+    editor_move_up(&e);
+    ASSERT_EQ_INT("up: previous screen line", 2, (int)e.cx);
+
+    e.cx = 13; /* last screen row of line 0, screen x 8 */
+    editor_move_down(&e);
+    ASSERT_EQ_INT("down from last screen row", 1, (int)e.cy);
+
+    editor_move_up(&e);
+    ASSERT_EQ_INT("up: back to line 0", 0, (int)e.cy);
+    ASSERT_EQ_INT("up: same screen x", 11, (int)e.cx);
+
+    editor_move_up(&e);
+    ASSERT_EQ_INT("up: clamped to row end", 5, (int)e.cx);
+
+    editor_move_up(&e);
+    ASSERT_EQ_INT("up: previous screen row", 0, (int)e.cx);
+
+    editor_move_up(&e);
+    ASSERT_EQ_INT("up: stays at top", 0, (int)e.cx);
+
+    /* Rendered layout must match the navigation segments. */
+    screen_init(&s);
+    screen_resize(&s, 8, 10);
+    e.cy = 0;
+    e.cx = 7; /* screen row 1, screen x 2 */
+    editor_render(&e, &s);
+    ASSERT_EQ_INT("screen row 0", (int)'a', (int)screen_get(&s, 1, 0));
+    ASSERT_EQ_INT("screen row 1", (int)'b', (int)screen_get(&s, 2, 0));
+    ASSERT_EQ_INT("screen row 2", (int)'s', (int)screen_get(&s, 3, 0));
+    ASSERT_EQ_INT("cursor screen row", 2, s.cy);
+    ASSERT_EQ_INT("cursor screen x", 2, s.cx);
     screen_free(&s);
     editor_free(&e);
 }
