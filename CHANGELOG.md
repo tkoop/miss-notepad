@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Mouse wheel now scrolls the file under the caret instead of moving the
   caret line by line; the caret keeps its file-line position and scrolls
   with the text, so it can go off screen while the file is scrolled away
+- With word wrap on, wheel scrolling moves one screen row at a time: the
+  view can start at any wrapped segment of the top line (the gutter shows
+  a continuation marker there), and mouse clicks resolve against the
+  scrolled view
 
 ### Fixed
 

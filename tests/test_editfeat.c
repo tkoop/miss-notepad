@@ -158,6 +158,60 @@ void test_editor_word_wrap_click(void)
     editor_free(&e);
 }
 
+void test_editor_wrap_scroll_view(void)
+{
+    Editor e;
+    Screen s;
+    editor_init(&e);
+    /* Width 10 wraps line 0 into three visual rows ("aaaa ", "bbbbb ",
+       "cccc dddd") and line 1 into three more ("second ", "line here ",
+       "too"), so the view can scroll mid-line and across lines. */
+    buf_load_mem(&e.buf, "aaaa bbbbb cccc dddd\nsecond line here too", 41);
+    e.word_wrap = 1;
+    e.show_linenum = 0;
+    editor_set_view(&e, 3, 10);
+
+    /* One wheel notch scrolls one visual row: the view now starts at the
+       second wrapped segment of line 0, without changing row_off. */
+    editor_scroll_view(&e, 1);
+    ASSERT_EQ_INT("top line kept", 0, (int)e.row_off);
+    ASSERT_EQ_INT("top segment moved", 1, (int)e.row_seg_off);
+
+    screen_init(&s);
+    screen_resize(&s, 5, 10);
+    editor_render(&e, &s);
+    ASSERT_EQ_INT("row1 shows segment 1", (int)'b', (int)screen_get(&s, 1, 0));
+    ASSERT_EQ_INT("row2 shows segment 2", (int)'c', (int)screen_get(&s, 2, 0));
+    ASSERT_EQ_INT("row3 shows next line", (int)'s', (int)screen_get(&s, 3, 0));
+    ASSERT_EQ_INT("caret off screen", 0, s.show_cursor);
+
+    /* Scrolling continues to the next wrapped segment, then the next
+       file line. */
+    editor_scroll_view(&e, 1);
+    ASSERT_EQ_INT("segment 2 on top", 2, (int)e.row_seg_off);
+    editor_scroll_view(&e, 1);
+    ASSERT_EQ_INT("next top line", 1, (int)e.row_off);
+    ASSERT_EQ_INT("next top segment", 0, (int)e.row_seg_off);
+
+    /* Any caret move pulls the caret back into view. */
+    editor_scroll_into_view(&e);
+    ASSERT_EQ_INT("scrolled back to caret", 0, (int)e.row_off);
+    ASSERT_EQ_INT("caret segment on top", 0, (int)e.row_seg_off);
+
+    /* Bottom clamp is in visual rows (last visual row at view bottom);
+       wheel up restores segments. */
+    editor_scroll_view(&e, 5);
+    ASSERT_EQ_INT("clamped at bottom", 1, (int)e.row_off);
+    ASSERT_EQ_INT("clamped at bottom seg", 0, (int)e.row_seg_off);
+    editor_scroll_view(&e, -5);
+    ASSERT_EQ_INT("clamped at top", 0, (int)e.row_seg_off);
+    editor_render(&e, &s);
+    ASSERT_EQ_INT("caret shown again", 1, s.show_cursor);
+    ASSERT_EQ_INT("caret screen row", 1, s.cy);
+    screen_free(&s);
+    editor_free(&e);
+}
+
 void test_editor_word_wrap_down_insert(void)
 {
     Editor e;

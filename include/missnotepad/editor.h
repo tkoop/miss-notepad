@@ -30,6 +30,7 @@ typedef struct {
     size_t cx;
     size_t cy;
     size_t row_off;
+    size_t row_seg_off; /* word wrap: visual segment of row_off at view top */
     size_t col_off;
     int goal_col;
     int tabstop;

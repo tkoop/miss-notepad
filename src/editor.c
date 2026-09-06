@@ -20,6 +20,7 @@ static int is_word(unsigned char c)
 
 static void remember_goal(Editor *e);
 static size_t visual_rows_before(const Editor *e, size_t row);
+static size_t visual_segment(const Editor *e, size_t row, size_t col);
 static void locate_visual_row(const Editor *e, size_t vis, size_t *out_row,
                               size_t *out_start, size_t *out_end);
 
@@ -125,6 +126,7 @@ int editor_load_path(Editor *e, const char *path)
     e->cx = 0;
     e->cy = 0;
     e->row_off = 0;
+    e->row_seg_off = 0;
     e->col_off = 0;
     e->goal_col = 0;
     e->dirty = 0;
@@ -153,6 +155,7 @@ int editor_new(Editor *e)
     e->cx = 0;
     e->cy = 0;
     e->row_off = 0;
+    e->row_seg_off = 0;
     e->col_off = 0;
     e->goal_col = 0;
     e->dirty = 0;
@@ -232,7 +235,7 @@ void editor_click(Editor *e, int text_y, int text_x)
             text_y = 0;
         }
         locate_visual_row(e, visual_rows_before(e, e->row_off) +
-                                 (size_t)text_y,
+                                 e->row_seg_off + (size_t)text_y,
                           &row, &seg_start, &seg_end);
         e->cy = row;
         line = buf_line(&e->buf, e->cy, &len);
@@ -384,16 +387,70 @@ static void apply_goal(Editor *e)
     e->cx = utf8_byte_at_col(line, len, (size_t)e->goal_col, e->tabstop);
 }
 
+/* Clamp row_seg_off to the segment count of the top line. */
+static void editor_normalize_seg_off(Editor *e)
+{
+    size_t nlines = buf_line_count(&e->buf);
+    size_t len = 0;
+    const char *line;
+    size_t count;
+
+    if (nlines == 0) {
+        e->row_seg_off = 0;
+        return;
+    }
+    if (e->row_off >= nlines) {
+        e->row_off = nlines - 1;
+    }
+    line = buf_line(&e->buf, e->row_off, &len);
+    count = wrap_line_starts(line, len, e->tabstop, editor_text_cols(e),
+                             NULL, 0);
+    if (count == 0) {
+        count = 1;
+    }
+    if (e->row_seg_off >= count) {
+        e->row_seg_off = count - 1;
+    }
+}
+
+/* Position the top of the view at absolute visual row vis (counting
+   wrapped rows over the whole document), possibly starting mid-line. */
+static void editor_scroll_to_visual(Editor *e, size_t vis)
+{
+    size_t row = 0;
+    size_t seg_start = 0;
+    size_t seg_end = 0;
+
+    locate_visual_row(e, vis, &row, &seg_start, &seg_end);
+    e->row_off = row;
+    e->row_seg_off = vis - visual_rows_before(e, row);
+    editor_normalize_seg_off(e);
+}
+
 void editor_scroll_into_view(Editor *e)
 {
     int col = editor_cursor_col(e);
     int rows = e->view_rows;
     int cols = editor_text_cols(e);
     if (e->word_wrap) {
+        /* Clamp in visual rows: the top of the view may start at any
+           wrapped segment of the top line. */
+        size_t cursor_row;
+        size_t first;
+
         e->col_off = 0;
-        col = 0;
-        cols = 9999;
+        editor_normalize_seg_off(e);
+        cursor_row = visual_rows_before(e, e->cy) +
+                     visual_segment(e, e->cy, e->cx);
+        first = visual_rows_before(e, e->row_off) + e->row_seg_off;
+        if (cursor_row < first) {
+            editor_scroll_to_visual(e, cursor_row);
+        } else if (rows > 0 && cursor_row >= first + (size_t)rows) {
+            editor_scroll_to_visual(e, cursor_row - (size_t)rows + 1);
+        }
+        return;
     }
+    e->row_seg_off = 0;
 
     if (e->cy < e->row_off) {
         e->row_off = e->cy;
@@ -409,44 +466,54 @@ void editor_scroll_into_view(Editor *e)
     }
 }
 
-/* Scroll the view by delta file lines (delta < 0 moves toward the top of
-   the file) without moving the caret. The caret keeps its file-line
+/* Scroll the view by delta rows (delta < 0 moves toward the top of the
+   file) without moving the caret. The caret keeps its file-line
    position, so it may end up outside the visible area; editor_render
    hides the terminal cursor in that case. */
 void editor_scroll_view(Editor *e, int delta)
 {
     size_t nlines = buf_line_count(&e->buf);
-    long max_off;
-    long target;
 
     if (delta == 0 || nlines == 0) {
         return;
     }
     if (e->word_wrap) {
-        /* The view always starts at the beginning of the row_off line, so
-           clamp to the file line holding the last scrollable visual row. */
+        /* Scroll by visual rows so wrapped lines move one screen row at
+           a time; the view may then start mid-line at row_seg_off. */
         size_t total = visual_rows_before(e, nlines);
-        size_t max_vis = total > (size_t)e->view_rows
-                             ? total - (size_t)e->view_rows
-                             : 0;
-        size_t row = 0;
-        size_t seg_start = 0;
-        size_t seg_end = 0;
-        locate_visual_row(e, max_vis, &row, &seg_start, &seg_end);
-        max_off = (long)row;
-    } else {
-        max_off = nlines > (size_t)e->view_rows
-                      ? (long)(nlines - (size_t)e->view_rows)
-                      : 0;
+        long max_first;
+        long target;
+
+        editor_normalize_seg_off(e);
+        max_first = total > (size_t)e->view_rows
+                        ? (long)(total - (size_t)e->view_rows)
+                        : 0;
+        target = (long)(visual_rows_before(e, e->row_off) +
+                        e->row_seg_off) + delta;
+        if (target < 0) {
+            target = 0;
+        }
+        if (target > max_first) {
+            target = max_first;
+        }
+        editor_scroll_to_visual(e, (size_t)target);
+        return;
     }
-    target = (long)e->row_off + delta;
-    if (target < 0) {
-        target = 0;
+    {
+        long max_off = nlines > (size_t)e->view_rows
+                           ? (long)(nlines - (size_t)e->view_rows)
+                           : 0;
+        long target = (long)e->row_off + delta;
+
+        e->row_seg_off = 0;
+        if (target < 0) {
+            target = 0;
+        }
+        if (target > max_off) {
+            target = max_off;
+        }
+        e->row_off = (size_t)target;
     }
-    if (target > max_off) {
-        target = max_off;
-    }
-    e->row_off = (size_t)target;
 }
 
 void editor_move_left(Editor *e)
@@ -1346,9 +1413,23 @@ static void render_text(const Editor *e, Screen *s, int y0, int x0, int h, int w
             if (starts != NULL) {
                 size_t count = wrap_line_starts(line, len, e->tabstop, w,
                                                 starts, len + 1);
+                size_t start_seg = (brow == e->row_off) ? e->row_seg_off : 0;
                 size_t seg;
-                size_t pos = 0;
-                for (seg = 0; seg < count && r < h; seg++) {
+                size_t pos;
+                if (start_seg >= count) {
+                    start_seg = count > 0 ? count - 1 : 0;
+                }
+                pos = count > 0 ? starts[start_seg] : 0;
+                if (e->show_linenum && x0 > 0 && start_seg > 0) {
+                    /* The first visible row is a wrapped continuation of
+                       the top line: draw the gutter marker instead of the
+                       line number rendered above. */
+                    screen_fill(s, y0 + r, 0, x0, 1, (uint32_t)' ',
+                                STYLE_GUTTER);
+                    screen_put(s, y0 + r, x0 - 1, (uint32_t)'|',
+                               STYLE_GUTTER);
+                }
+                for (seg = start_seg; seg < count && r < h; seg++) {
                     size_t seg_end = seg + 1 < count ? starts[seg + 1] : len;
                     while (pos < seg_end) {
                         uint32_t cp = 0;
@@ -1516,7 +1597,8 @@ void editor_render(const Editor *e, Screen *s)
     if (e->word_wrap) {
         size_t cursor_row = visual_rows_before(e, e->cy) +
                             visual_segment(e, e->cy, e->cx);
-        size_t first_row = visual_rows_before(e, e->row_off);
+        size_t first_row = visual_rows_before(e, e->row_off) +
+                           e->row_seg_off;
         size_t seg_start = 0;
         size_t seg_end = 0;
         size_t line_len = 0;
