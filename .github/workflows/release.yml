@@ -48,6 +48,15 @@ jobs:
       - name: Build .rpm
         run: ./packaging/build-rpm.sh
 
+      - name: Create the GitHub Release (if missing)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 || \
+            gh release create "$GITHUB_REF_NAME" \
+              --title "MissNotepad ${GITHUB_REF_NAME#v}" \
+              --notes "MissNotepad ${GITHUB_REF_NAME#v}"
+
       - name: Attach assets to the GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
