@@ -9,6 +9,7 @@
 #include <sys/ioctl.h>
 #include <sys/select.h>
 #include <termios.h>
+#include <time.h>
 #include <unistd.h>
 
 static struct termios g_orig;
@@ -16,6 +17,21 @@ static int g_raw;
 static volatile sig_atomic_t g_resized;
 static unsigned char g_inbuf[64];
 static size_t g_inlen;
+
+/* Caret blink state: remember where the caret was last frame and when it
+   last moved. Any position change (typing, arrows, clicks, scrolling,
+   dialog fields, ...) counts as movement and keeps the caret solid for
+   one second before it resumes blinking. */
+static int g_caret_last_y = -1;
+static int g_caret_last_x = -1;
+static double g_caret_moved_ms;
+
+static double now_ms(void)
+{
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return (double)ts.tv_sec * 1000.0 + (double)ts.tv_nsec / 1000000.0;
+}
 
 static void on_winch(int sig)
 {
@@ -67,6 +83,9 @@ int term_init(void)
     g_raw = 1;
     g_inlen = 0;
     g_resized = 0;
+    g_caret_last_y = -1;
+    g_caret_last_x = -1;
+    g_caret_moved_ms = now_ms();
 
     memset(&sa, 0, sizeof(sa));
     sa.sa_handler = on_winch;
@@ -280,10 +299,21 @@ void term_flush(const Screen *s)
     }
     APPEND("\033[0m", 4);
     if (s->show_cursor) {
-        /* DECSCUSR "\033[5 q" = blinking vertical bar (insert cursor). */
-        char pos[32];
-        int n = snprintf(pos, sizeof(pos), "\033[%d;%dH\033[?25h\033[5 q",
-                         s->cy + 1, s->cx + 1);
+        /* DECSCUSR: "\033[6 q" = solid vertical bar while the caret is
+           moving (and for a second after), "\033[5 q" = blinking bar. */
+        char pos[40];
+        int n;
+        double now = now_ms();
+        int solid;
+
+        if (s->cy != g_caret_last_y || s->cx != g_caret_last_x) {
+            g_caret_last_y = s->cy;
+            g_caret_last_x = s->cx;
+            g_caret_moved_ms = now;
+        }
+        solid = now - g_caret_moved_ms < 1000.0;
+        n = snprintf(pos, sizeof(pos), "\033[%d;%dH\033[?25h\033[%d q",
+                     s->cy + 1, s->cx + 1, solid ? 6 : 5);
         APPEND(pos, n);
     } else {
         APPEND("\033[?25l", 6);

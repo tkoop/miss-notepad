@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- The caret blinks when idle (terminal-native blinking bar) and stays
+  solid for one second after it moves for any reason (typing, arrow
+  keys, clicking, scrolling, dialog fields)
 - Mouse wheel now scrolls the file under the caret instead of moving the
   caret line by line; the caret keeps its file-line position and scrolls
   with the text, so it can go off screen while the file is scrolled away
