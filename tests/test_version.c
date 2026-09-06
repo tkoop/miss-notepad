@@ -3,9 +3,9 @@
 
 void test_version_string(void)
 {
-    ASSERT_STREQ("version is 1.1.1", "1.1.1", missnotepad_version_string());
+    ASSERT_STREQ("version is 1.2.0", "1.2.0", missnotepad_version_string());
     ASSERT_STREQ("name is MissNotepad", "MissNotepad", missnotepad_name());
     ASSERT_EQ_INT("major", 1, MISSNOTEPAD_VERSION_MAJOR);
-    ASSERT_EQ_INT("minor", 1, MISSNOTEPAD_VERSION_MINOR);
-    ASSERT_EQ_INT("patch", 1, MISSNOTEPAD_VERSION_PATCH);
+    ASSERT_EQ_INT("minor", 2, MISSNOTEPAD_VERSION_MINOR);
+    ASSERT_EQ_INT("patch", 0, MISSNOTEPAD_VERSION_PATCH);
 }

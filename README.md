@@ -38,7 +38,7 @@ The script downloads a static binary from
 [Releases](https://github.com/tkoop/miss-notepad/releases), verifies its
 SHA-256 checksum, and installs to `~/.local/bin` (override the destination
 with `MISS_INSTALL_DIR=/some/path sh install.sh`, or pass a version like
-`install.sh 1.1.1`).
+`install.sh 1.2.0`).
 
 Prefer a native package? The release page also carries a `.deb`
 (Debian/Ubuntu/Mint) and an `.rpm` (Fedora/openSUSE); Arch users can use
@@ -291,5 +291,5 @@ CHANGELOG.md
 
 ## Version
 
-MissNotepad **1.1.1** — the Notepad-for-the-terminal
+MissNotepad **1.2.0** — the Notepad-for-the-terminal
 vision.
