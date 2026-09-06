@@ -88,8 +88,9 @@ void term_shutdown(void)
     if (!g_raw) {
         return;
     }
+    /* "\033[0 q" resets DECSCUSR so we don't leave a bar cursor behind. */
     static const char leave[] =
-        "\033[?1006l\033[?1002l\033[?1000l\033[?25h\033[?1049l";
+        "\033[?1006l\033[?1002l\033[?1000l\033[0 q\033[?25h\033[?1049l";
     if (write(STDOUT_FILENO, leave, sizeof(leave) - 1) < 0) {
         /* best-effort restore */
     }
@@ -279,9 +280,10 @@ void term_flush(const Screen *s)
     }
     APPEND("\033[0m", 4);
     if (s->show_cursor) {
+        /* DECSCUSR "\033[5 q" = blinking vertical bar (insert cursor). */
         char pos[32];
-        int n = snprintf(pos, sizeof(pos), "\033[%d;%dH\033[?25h", s->cy + 1,
-                         s->cx + 1);
+        int n = snprintf(pos, sizeof(pos), "\033[%d;%dH\033[?25h\033[5 q",
+                         s->cy + 1, s->cx + 1);
         APPEND(pos, n);
     } else {
         APPEND("\033[?25l", 6);

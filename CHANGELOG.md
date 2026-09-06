@@ -5,6 +5,19 @@ All notable changes to MissNotepad are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- Mouse wheel now scrolls the file under the caret instead of moving the
+  caret line by line; the caret keeps its file-line position and scrolls
+  with the text, so it can go off screen while the file is scrolled away
+
+### Fixed
+
+- The caret is drawn as a vertical insert-style bar (DECSCUSR) instead of
+  the terminal's default block, and the default shape is restored on exit
+
 ## [1.1.1] — 2026-09-05
 
 ### Added

@@ -274,10 +274,12 @@ static int handle_mouse(App *app, const Event *ev)
         return app->editor.quit;
     }
     if (wheel) {
+        /* Scroll the file under the caret; the caret keeps its file-line
+           position and may end up off screen. */
         if ((btn & 1) == 0) {
-            editor_move_up(&app->editor);
+            editor_scroll_view(&app->editor, -1);
         } else {
-            editor_move_down(&app->editor);
+            editor_scroll_view(&app->editor, 1);
         }
         return app->editor.quit;
     }

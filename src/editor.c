@@ -409,6 +409,46 @@ void editor_scroll_into_view(Editor *e)
     }
 }
 
+/* Scroll the view by delta file lines (delta < 0 moves toward the top of
+   the file) without moving the caret. The caret keeps its file-line
+   position, so it may end up outside the visible area; editor_render
+   hides the terminal cursor in that case. */
+void editor_scroll_view(Editor *e, int delta)
+{
+    size_t nlines = buf_line_count(&e->buf);
+    long max_off;
+    long target;
+
+    if (delta == 0 || nlines == 0) {
+        return;
+    }
+    if (e->word_wrap) {
+        /* The view always starts at the beginning of the row_off line, so
+           clamp to the file line holding the last scrollable visual row. */
+        size_t total = visual_rows_before(e, nlines);
+        size_t max_vis = total > (size_t)e->view_rows
+                             ? total - (size_t)e->view_rows
+                             : 0;
+        size_t row = 0;
+        size_t seg_start = 0;
+        size_t seg_end = 0;
+        locate_visual_row(e, max_vis, &row, &seg_start, &seg_end);
+        max_off = (long)row;
+    } else {
+        max_off = nlines > (size_t)e->view_rows
+                      ? (long)(nlines - (size_t)e->view_rows)
+                      : 0;
+    }
+    target = (long)e->row_off + delta;
+    if (target < 0) {
+        target = 0;
+    }
+    if (target > max_off) {
+        target = max_off;
+    }
+    e->row_off = (size_t)target;
+}
+
 void editor_move_left(Editor *e)
 {
     if (e->cx > 0) {

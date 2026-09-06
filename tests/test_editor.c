@@ -107,6 +107,49 @@ void test_editor_scroll(void)
     editor_free(&e);
 }
 
+void test_editor_scroll_view(void)
+{
+    Editor e;
+    Screen s;
+    int i;
+    editor_init(&e);
+    for (i = 0; i < 30; i++) {
+        buf_insert_cstr(&e.buf, (size_t)i, 0, "line");
+        if (i < 29) {
+            buf_split(&e.buf, (size_t)i, 4);
+        }
+    }
+    editor_set_view(&e, 5, 20);
+    e.cy = 2;
+    e.cx = 0;
+
+    /* Wheel scroll moves the view, not the caret. */
+    editor_scroll_view(&e, 3);
+    ASSERT_EQ_INT("scrolled down", 3, (int)e.row_off);
+    ASSERT_EQ_INT("caret file line kept", 2, (int)e.cy);
+
+    editor_scroll_view(&e, -10);
+    ASSERT_EQ_INT("clamped at top", 0, (int)e.row_off);
+    ASSERT_EQ_INT("caret kept at top", 2, (int)e.cy);
+
+    editor_scroll_view(&e, 100);
+    ASSERT_EQ_INT("clamped at bottom", 25, (int)e.row_off);
+    ASSERT_EQ_INT("caret kept at bottom", 2, (int)e.cy);
+
+    /* Rendering hides the terminal caret while it is out of view. */
+    screen_init(&s);
+    screen_resize(&s, 8, 40);
+    editor_render(&e, &s);
+    ASSERT_EQ_INT("caret hidden when off screen", 0, s.show_cursor);
+
+    editor_scroll_view(&e, -25);
+    editor_render(&e, &s);
+    ASSERT_EQ_INT("caret shown again", 1, s.show_cursor);
+    ASSERT_EQ_INT("caret screen row", 3, s.cy);
+    screen_free(&s);
+    editor_free(&e);
+}
+
 void test_editor_render(void)
 {
     Editor e;

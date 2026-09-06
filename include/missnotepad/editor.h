@@ -69,6 +69,7 @@ void editor_move_doc_end(Editor *e);
 void editor_move_word_left(Editor *e);
 void editor_move_word_right(Editor *e);
 void editor_scroll_into_view(Editor *e);
+void editor_scroll_view(Editor *e, int delta);
 int editor_handle_event(Editor *e, const Event *ev);
 void editor_render(const Editor *e, Screen *s);
 int editor_cursor_col(const Editor *e);

@@ -28,6 +28,7 @@ void test_editor_goal_column(void);
 void test_editor_ctrl_q(void);
 void test_editor_handle_arrows(void);
 void test_editor_scroll(void);
+void test_editor_scroll_view(void);
 void test_editor_render(void);
 void test_editor_type_and_undo(void);
 void test_editor_backspace_delete(void);
@@ -116,6 +117,7 @@ int main(void)
         {"editor_ctrl_q", test_editor_ctrl_q},
         {"editor_handle_arrows", test_editor_handle_arrows},
         {"editor_scroll", test_editor_scroll},
+        {"editor_scroll_view", test_editor_scroll_view},
         {"editor_render", test_editor_render},
         {"editor_type_and_undo", test_editor_type_and_undo},
         {"editor_backspace_delete", test_editor_backspace_delete},
