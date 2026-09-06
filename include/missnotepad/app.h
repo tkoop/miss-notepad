@@ -17,6 +17,7 @@ typedef struct {
     Settings settings;
     AppFocus focus;
     int dragging;
+    int quit_after_save; /* vi :wq on untitled: quit after the name is picked */
     KeybindState keys;
     char config_path[512];
 } App;

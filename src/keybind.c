@@ -96,6 +96,9 @@ static KeyCmd map_nano(const Event *ev)
     if (ctrl(ev, 'o')) {
         return act(ACT_SAVE);
     }
+    if (ctrl(ev, 's')) {
+        return act(ACT_SAVE);
+    }
     if (ctrl(ev, 'w')) {
         return act(ACT_FIND);
     }
@@ -181,6 +184,9 @@ static KeyCmd map_vi(const Event *ev, KeybindState *st)
         if (ev->key == KEY_ESC) {
             st->vi_mode = VI_NORMAL;
             return consume();
+        }
+        if (ctrl(ev, 's')) {
+            return act(ACT_SAVE);
         }
         return pass();
     }

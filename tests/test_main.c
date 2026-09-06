@@ -57,6 +57,7 @@ void test_dialog_type_and_ok(void);
 void test_dialog_esc_cancel(void);
 void test_dialog_render(void);
 void test_app_open_dialog_saveas(void);
+void test_app_save_untitled(void);
 void test_editor_click(void);
 void test_app_mouse_menu(void);
 void test_menubar_init(void);
@@ -147,6 +148,7 @@ int main(void)
         {"dialog_esc_cancel", test_dialog_esc_cancel},
         {"dialog_render", test_dialog_render},
         {"app_open_dialog_saveas", test_app_open_dialog_saveas},
+        {"app_save_untitled", test_app_save_untitled},
         {"editor_click", test_editor_click},
         {"app_mouse_menu", test_app_mouse_menu},
         {"menubar_init", test_menubar_init},

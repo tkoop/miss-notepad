@@ -89,6 +89,17 @@ void app_free(App *app)
     editor_free(&app->editor);
 }
 
+/* Save, asking for a file name first when the document is untitled. */
+static void app_save(App *app)
+{
+    if (app->editor.filename == NULL) {
+        dialog_show_saveas(&app->dialog, NULL);
+        app->focus = FOCUS_DIALOG;
+    } else {
+        editor_save(&app->editor);
+    }
+}
+
 int app_dispatch(App *app, Action act)
 {
     switch (act) {
@@ -96,7 +107,7 @@ int app_dispatch(App *app, Action act)
         editor_new(&app->editor);
         break;
     case ACT_SAVE:
-        editor_save(&app->editor);
+        app_save(app);
         break;
     case ACT_SAVE_AS:
         dialog_show_saveas(&app->dialog, app->editor.filename);
@@ -221,13 +232,18 @@ int app_dispatch(App *app, Action act)
 
 static void finish_dialog(App *app)
 {
+    int ask_name = 0;
     if (app->dialog.result == DLG_OK) {
         if (app->dialog.kind == DLG_OPEN) {
             if (editor_load_path(&app->editor, app->dialog.field) != 0) {
                 editor_set_message(&app->editor, "Cannot open file");
             }
         } else if (app->dialog.kind == DLG_SAVEAS) {
-            editor_save_as(&app->editor, app->dialog.field);
+            if (editor_save_as(&app->editor, app->dialog.field) == 0 &&
+                app->quit_after_save) {
+                app->editor.quit = 1;
+            }
+            app->quit_after_save = 0;
         } else if (app->dialog.kind == DLG_FIND) {
             memcpy(app->editor.find_text, app->dialog.field,
                    sizeof(app->editor.find_text) - 1);
@@ -239,7 +255,15 @@ static void finish_dialog(App *app)
         } else if (app->dialog.kind == DLG_VICMD) {
             if (strcmp(app->dialog.field, "w") == 0 ||
                 strcmp(app->dialog.field, "wq") == 0) {
-                editor_save(&app->editor);
+                if (app->editor.filename == NULL) {
+                    /* Ask for a name; finish the save in the Save As
+                       dialog that opens below. */
+                    ask_name = 1;
+                    app->quit_after_save =
+                        strcmp(app->dialog.field, "wq") == 0;
+                } else {
+                    editor_save(&app->editor);
+                }
             }
             if (strcmp(app->dialog.field, "q") == 0 ||
                 strcmp(app->dialog.field, "q!") == 0 ||
@@ -255,6 +279,12 @@ static void finish_dialog(App *app)
         }
     }
     dialog_close(&app->dialog);
+    if (ask_name) {
+        dialog_show_saveas(&app->dialog, NULL);
+        app->focus = FOCUS_DIALOG;
+        return;
+    }
+    app->quit_after_save = 0;
     app->focus = FOCUS_EDIT;
 }
 

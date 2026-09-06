@@ -112,6 +112,83 @@ void test_app_open_dialog_saveas(void)
     unlink(path);
 }
 
+void test_app_save_untitled(void)
+{
+    App app;
+    char path[] = "/tmp/missnotepad-sav-XXXXXX";
+    char path2[] = "/tmp/missnotepad-sav2-XXXXXX";
+    int fd = mkstemp(path);
+    int fd2 = mkstemp(path2);
+    Event ev;
+    ASSERT_TRUE("mkstemp", fd >= 0 && fd2 >= 0);
+    if (fd < 0 || fd2 < 0) {
+        return;
+    }
+    close(fd);
+    close(fd2);
+    unlink(path);
+    unlink(path2);
+
+    ASSERT_EQ_INT("init", 0, app_init(&app, NULL));
+    ASSERT_TRUE("no name", app.editor.filename == NULL);
+
+    /* Save on an untitled document asks for a file name first. */
+    app_dispatch(&app, ACT_SAVE);
+    ASSERT_TRUE("saveas dialog", app.dialog.visible);
+    ASSERT_EQ_INT("kind", DLG_SAVEAS, (int)app.dialog.kind);
+    ASSERT_EQ_INT("field empty", 0, (int)app.dialog.field[0]);
+    ASSERT_EQ_INT("focus", FOCUS_DIALOG, (int)app.focus);
+
+    {
+        size_t i;
+        for (i = 0; path[i]; i++) {
+            ev = key(KEY_CHAR, (uint32_t)(unsigned char)path[i], 0);
+            app_handle_event(&app, &ev);
+        }
+    }
+    ev = key(KEY_ENTER, 0, 0);
+    app_handle_event(&app, &ev);
+    ASSERT_TRUE("closed", !app.dialog.visible);
+    ASSERT_STREQ("name kept", path, app.editor.filename);
+    ASSERT_EQ_INT("saved", 0, (int)app.editor.dirty);
+
+    /* With a file name, Save does not ask again. */
+    app_dispatch(&app, ACT_SAVE);
+    ASSERT_TRUE("no dialog", !app.dialog.visible);
+    ASSERT_EQ_INT("focus back", FOCUS_EDIT, (int)app.focus);
+
+    /* vi :wq on an untitled document also asks for a name, then quits
+       once the save completes. */
+    editor_new(&app.editor);
+    ASSERT_TRUE("untitled again", app.editor.filename == NULL);
+    app_dispatch(&app, ACT_VI_COLON);
+    ASSERT_TRUE("vicmd dialog", app.dialog.visible);
+    ev = key(KEY_CHAR, 'w', 0);
+    app_handle_event(&app, &ev);
+    ev = key(KEY_CHAR, 'q', 0);
+    app_handle_event(&app, &ev);
+    ev = key(KEY_ENTER, 0, 0);
+    app_handle_event(&app, &ev);
+    ASSERT_TRUE("saveas asked", app.dialog.visible);
+    ASSERT_EQ_INT("saveas kind", DLG_SAVEAS, (int)app.dialog.kind);
+    {
+        size_t i;
+        for (i = 0; path2[i]; i++) {
+            ev = key(KEY_CHAR, (uint32_t)(unsigned char)path2[i], 0);
+            app_handle_event(&app, &ev);
+        }
+    }
+    ev = key(KEY_ENTER, 0, 0);
+    app_handle_event(&app, &ev);
+    ASSERT_TRUE("saveas closed", !app.dialog.visible);
+    ASSERT_STREQ("name2 kept", path2, app.editor.filename);
+    ASSERT_EQ_INT("quit after save", 1, app.editor.quit);
+
+    app_free(&app);
+    unlink(path);
+    unlink(path2);
+}
+
 void test_editor_click(void)
 {
     Editor e;

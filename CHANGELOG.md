@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Save (Ctrl+S, File → Save, nano ^S, vi :w/:wq) on an untitled document
+  now opens the Save As dialog to pick a file name first; the chosen name
+  is kept for all future saves. Save As always asks and switches the
+  document to the new name
 - The caret blinks when idle (terminal-native blinking bar) and stays
   solid for one second after it moves for any reason (typing, arrow
   keys, clicking, scrolling, dialog fields)
