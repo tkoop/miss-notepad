@@ -11,6 +11,8 @@ The menuing style is inspired by [Links](http://links.twibright.com/), the
 text-mode web browser: click or use Alt+letter to open dropdowns drawn in
 ASCII over the document.
 
+![MissNotepad running in the terminal](resources/screenshot.png)
+
 ## Features
 
 - Full-screen editor (takes over the terminal, like nano)
