@@ -53,3 +53,57 @@ void test_cli_too_many_files(void)
     MissNotepadCli cli = missnotepad_cli_parse(3, argv);
     ASSERT_EQ_INT("error", MISSNOTEPAD_CLI_ERROR, cli.action);
 }
+
+void test_cli_keys(void)
+{
+    char *argv[] = {"miss", "--keys=nano", "notes.txt"};
+    MissNotepadCli cli = missnotepad_cli_parse(2, argv);
+    ASSERT_EQ_INT("keys run", MISSNOTEPAD_CLI_RUN, cli.action);
+    ASSERT_EQ_INT("keys set", 1, cli.keys_set);
+    ASSERT_EQ_INT("keys nano", THEME_NANO, cli.keys_theme);
+
+    argv[1] = "--keys";
+    cli = missnotepad_cli_parse(2, argv);
+    ASSERT_EQ_INT("keys missing arg", MISSNOTEPAD_CLI_ERROR, cli.action);
+
+    argv[1] = "--keys";
+    argv[2] = "vi";
+    cli = missnotepad_cli_parse(3, argv);
+    ASSERT_EQ_INT("keys vi run", MISSNOTEPAD_CLI_RUN, cli.action);
+    ASSERT_EQ_INT("keys vi set", 1, cli.keys_set);
+    ASSERT_EQ_INT("keys vi", THEME_VI, cli.keys_theme);
+
+    argv[1] = "--keys=emacs";
+    argv[2] = "notes.txt";
+    cli = missnotepad_cli_parse(3, argv);
+    ASSERT_EQ_INT("keys emacs run", MISSNOTEPAD_CLI_RUN, cli.action);
+    ASSERT_EQ_INT("keys emacs", THEME_EMACS, cli.keys_theme);
+    ASSERT_STREQ("keys with file", "notes.txt", cli.filename);
+
+    argv[1] = "--keys=bogus";
+    cli = missnotepad_cli_parse(2, argv);
+    ASSERT_EQ_INT("keys bogus", MISSNOTEPAD_CLI_ERROR, cli.action);
+    ASSERT_NOT_NULL("keys bogus msg", cli.error);
+}
+
+void test_cli_wrap(void)
+{
+    char *argv[] = {"miss", "--no-wrap", "--keys=vim"};
+    MissNotepadCli cli = missnotepad_cli_parse(2, argv);
+    ASSERT_EQ_INT("no-wrap run", MISSNOTEPAD_CLI_RUN, cli.action);
+    ASSERT_EQ_INT("no-wrap set", 1, cli.wrap_set);
+    ASSERT_EQ_INT("no-wrap off", 0, cli.wrap);
+
+    argv[1] = "--wrap";
+    cli = missnotepad_cli_parse(2, argv);
+    ASSERT_EQ_INT("wrap run", MISSNOTEPAD_CLI_RUN, cli.action);
+    ASSERT_EQ_INT("wrap set", 1, cli.wrap_set);
+    ASSERT_EQ_INT("wrap on", 1, cli.wrap);
+
+    argv[1] = "--wrap";
+    argv[2] = "--keys=vim";
+    cli = missnotepad_cli_parse(3, argv);
+    ASSERT_EQ_INT("combined run", MISSNOTEPAD_CLI_RUN, cli.action);
+    ASSERT_EQ_INT("combined wrap", 1, cli.wrap_set);
+    ASSERT_EQ_INT("combined theme", THEME_VI, cli.keys_theme);
+}

@@ -4,7 +4,7 @@
 
 #include <stdio.h>
 
-static int run_app(const char *filename)
+static int run_app(const MissNotepadCli *cli)
 {
     App app;
     Screen scr;
@@ -15,13 +15,15 @@ static int run_app(const char *filename)
         fprintf(stderr, "miss: a terminal is required\n");
         return 1;
     }
-    if (app_init(&app, filename) != 0) {
-        fprintf(stderr, "miss: cannot start%s%s\n", filename ? " " : "",
-                filename ? filename : "");
+    if (app_init(&app, cli->filename) != 0) {
+        fprintf(stderr, "miss: cannot start%s%s\n",
+                cli->filename ? " " : "", cli->filename ? cli->filename : "");
         app_free(&app);
         return 1;
     }
     app_load_config(&app, NULL);
+    app_apply_cli_options(&app, cli->keys_set, cli->keys_theme, cli->wrap_set,
+                          cli->wrap);
     if (term_init() != 0) {
         fprintf(stderr, "miss: failed to initialize the terminal\n");
         app_free(&app);
@@ -80,5 +82,5 @@ int main(int argc, char **argv)
         return 2;
     }
 
-    return run_app(cli.filename);
+    return run_app(&cli);
 }

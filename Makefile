@@ -52,9 +52,9 @@ test: $(TEST_BIN) $(APP)
 	$(TEST_BIN)
 	@echo "--- CLI checks ---"
 	$(APP) --version | grep -q "MissNotepad "
-	$(APP) --help | grep -qF "Usage: miss [FILE]"
+	$(APP) --help | grep -qF "Usage: miss [OPTIONS] [FILE]"
 	$(APP) -v | grep -q "MissNotepad "
-	$(APP) -h | grep -qF "Usage: miss [FILE]"
+	$(APP) -h | grep -qF "Usage: miss [OPTIONS] [FILE]"
 	! $(APP) --bogus >/dev/null 2>&1
 	! $(APP) </dev/null >/dev/null 2>&1
 	@echo "All tests passed."

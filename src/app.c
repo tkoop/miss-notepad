@@ -10,24 +10,48 @@
 static void ensure_config_dir(const char *path)
 {
     char dir[512];
-    char *slash;
+    char *p;
+
     snprintf(dir, sizeof(dir), "%s", path);
-    slash = strrchr(dir, '/');
-    if (slash == NULL) {
+    p = strrchr(dir, '/');
+    if (p == NULL) {
         return;
     }
-    *slash = '\0';
+    *p = '\0'; /* drop the file name; dir is now the directory part */
+    /* Create every missing component, e.g. ~/.config, ~/.config/missnotepad. */
+    for (p = dir + 1; *p != '\0'; p++) {
+        if (*p == '/') {
+            *p = '\0';
+            mkdir(dir, 0755);
+            *p = '/';
+        }
+    }
     mkdir(dir, 0755);
+}
+
+/* Resolve the user config path per the XDG Base Directory Specification:
+ * $XDG_CONFIG_HOME/missnotepad/config, or ~/.config/missnotepad/config
+ * (a hidden directory in the user's home directory) when unset. */
+static void resolve_config_path(App *app)
+{
+    const char *xdg = getenv("XDG_CONFIG_HOME");
+    const char *home = getenv("HOME");
+
+    app->config_path[0] = '\0';
+    if (xdg != NULL && xdg[0] != '\0') {
+        snprintf(app->config_path, sizeof(app->config_path),
+                 "%s/missnotepad/config", xdg);
+    } else if (home != NULL) {
+        snprintf(app->config_path, sizeof(app->config_path),
+                 "%s/.config/missnotepad/config", home);
+    }
 }
 
 static void load_user_settings(App *app)
 {
-    const char *home = getenv("HOME");
     settings_defaults(&app->settings);
-    app->config_path[0] = '\0';
-    if (home != NULL) {
-        snprintf(app->config_path, sizeof(app->config_path),
-                 "%s/.config/missnotepad/config", home);
+    resolve_config_path(app);
+    if (app->config_path[0] != '\0') {
         settings_load(&app->settings, app->config_path);
     }
     editor_apply_settings(&app->editor, &app->settings);
@@ -87,6 +111,29 @@ void app_load_config(App *app, const char *path)
 void app_free(App *app)
 {
     editor_free(&app->editor);
+}
+
+/* Apply command-line option overrides (key theme, word wrap) on top of the
+ * loaded user settings and persist them to the config file. */
+void app_apply_cli_options(App *app, int keys_set, KeyTheme keys_theme,
+                           int wrap_set, int wrap)
+{
+    int changed = 0;
+    if (keys_set && app->editor.theme != keys_theme) {
+        app->editor.theme = keys_theme;
+        app->keys.vi_mode = (keys_theme == THEME_VI) ? VI_NORMAL : VI_INSERT;
+        changed = 1;
+    }
+    if (wrap_set && app->editor.word_wrap != wrap) {
+        app->editor.word_wrap = wrap;
+        changed = 1;
+    }
+    if (changed) {
+        save_user_settings(app);
+    } else {
+        menubar_sync_checks(&app->menu, app->editor.show_linenum,
+                            app->editor.word_wrap, app->editor.theme);
+    }
 }
 
 /* Save, asking for a file name first when the document is untitled. */

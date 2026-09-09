@@ -24,6 +24,8 @@ typedef struct {
 
 int app_init(App *app, const char *filename);
 void app_load_config(App *app, const char *path);
+void app_apply_cli_options(App *app, int keys_set, KeyTheme keys_theme,
+                           int wrap_set, int wrap);
 void app_free(App *app);
 int app_handle_event(App *app, const Event *ev);
 void app_render(App *app, Screen *s);
