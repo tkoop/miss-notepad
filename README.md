@@ -25,7 +25,8 @@ ASCII over the document.
 - Cut, copy, paste, select all, undo/redo
 - Search and replace
 - Key-binding themes: **Notepad** (default), **nano**, **vi**, **Emacs**
-- Settings saved to `~/.config/missnotepad/config`
+- Settings saved to `$XDG_CONFIG_HOME/missnotepad/config`
+  (defaults to `~/.config/missnotepad/config`)
 
 ## Quick install
 
@@ -168,12 +169,26 @@ through the terminal.
 ```sh
 miss
 miss notes.txt
+miss --keys=nano
+miss --no-wrap
 miss --help
 miss --version
 ```
 
 MissNotepad needs a real terminal (not a pipe). It uses the alternate screen buffer
 and restores your shell when you quit.
+
+### Command-line options
+
+| Option | Effect |
+|--------|--------|
+| `-h`, `--help` | Show usage and exit |
+| `-v`, `--version` | Show version and exit |
+| `--keys=THEME` | Start with the given key binding theme: `notepad`, `nano`, `vi` or `emacs`. The choice is saved to the config file, so it sticks for future sessions. `--keys THEME` (space-separated) also works |
+| `--wrap`, `--no-wrap` | Turn word wrap on or off. The choice is saved to the config file |
+
+Options can be combined and may appear before or after `FILE`, e.g.
+`miss --keys=emacs --no-wrap todo.txt`.
 
 ## How to use
 
@@ -212,7 +227,15 @@ the arrows, activate with Enter, leave with Esc.
 | F3 | Find Next |
 | Ctrl+H | Replace |
 | Shift+arrows | Select |
+| Shift+Ctrl+arrows | Select word by word |
+| Shift+Home / End | Select to line start / end |
+| Shift+Page Up/Down | Select by page |
+| Ctrl+arrows | Move word by word |
+| Ctrl+Home / End | Go to document start / end |
 | Arrows, Home, End, Page Up/Down | Move |
+
+Selected text is replaced when you type over it, and cut/copy/paste work on
+it as usual.
 
 ### nano keys
 
@@ -259,7 +282,11 @@ MissNotepad starts vi theme in **normal** mode (`-- NORMAL --` on the status lin
 
 ### Settings
 
-MissNotepad reads and writes `~/.config/missnotepad/config`:
+MissNotepad stores its settings in a hidden directory in your home folder,
+following the XDG Base Directory Specification:
+
+- `$XDG_CONFIG_HOME/missnotepad/config` when `XDG_CONFIG_HOME` is set, or
+- `~/.config/missnotepad/config` otherwise (the default)
 
 ```
 show_linenum=1
@@ -268,7 +295,10 @@ tabstop=4
 key_theme=notepad
 ```
 
-`key_theme` may be `notepad`, `nano`, `vi`, or `emacs`.
+`key_theme` may be `notepad`, `nano`, `vi`, or `emacs`. You can edit the
+file directly, change the settings in the editor (View menu), or pass them
+on the command line (`--keys=THEME`, `--wrap` / `--no-wrap`); command-line
+and in-editor changes are saved back to this file.
 
 ## Tests
 

@@ -5,6 +5,29 @@ All notable changes to MissNotepad are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0] — 2026-09-08
+
+### Added
+
+- Command-line options: `--keys=THEME` (`notepad`, `nano`, `vi` or `emacs`)
+  sets the key binding theme, and `--wrap` / `--no-wrap` turn word wrap on
+  or off. Both are saved to the config file so they persist across sessions
+- The config file now follows the XDG Base Directory Specification:
+  `$XDG_CONFIG_HOME/missnotepad/config` is used when `XDG_CONFIG_HOME` is
+  set, `~/.config/missnotepad/config` otherwise (unchanged default)
+
+### Fixed
+
+- The config directory (`~/.config/missnotepad`) is now created recursively,
+  so settings can be saved on systems where `~/.config` does not exist yet
+
+### Documented
+
+- Keyboard selection: Shift+arrows select, Shift+Ctrl+arrows select whole
+  words, Shift+Home/End and Shift+Page Up/Down extend the selection; typing
+  replaces the selection (behavior verified and covered by new regression
+  tests)
+
 ## [1.2.0] — 2026-09-06
 
 ### Changed

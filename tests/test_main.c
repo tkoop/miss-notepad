@@ -87,6 +87,15 @@ void test_cli_help(void);
 void test_cli_version(void);
 void test_cli_unknown_option(void);
 void test_cli_too_many_files(void);
+void test_cli_keys(void);
+void test_cli_wrap(void);
+void test_kbsel_chars(void);
+void test_kbsel_word_right(void);
+void test_kbsel_word_left(void);
+void test_kbsel_home_end(void);
+void test_kbsel_doc_end(void);
+void test_kbsel_lines(void);
+void test_kbsel_type_replaces(void);
 
 int main(void)
 {
@@ -178,6 +187,15 @@ int main(void)
         {"cli_version", test_cli_version},
         {"cli_unknown_option", test_cli_unknown_option},
         {"cli_too_many_files", test_cli_too_many_files},
+        {"cli_keys", test_cli_keys},
+        {"cli_wrap", test_cli_wrap},
+        {"kbsel_chars", test_kbsel_chars},
+        {"kbsel_word_right", test_kbsel_word_right},
+        {"kbsel_word_left", test_kbsel_word_left},
+        {"kbsel_home_end", test_kbsel_home_end},
+        {"kbsel_doc_end", test_kbsel_doc_end},
+        {"kbsel_lines", test_kbsel_lines},
+        {"kbsel_type_replaces", test_kbsel_type_replaces},
     };
 
     return missnotepad_run_tests(tests, (int)(sizeof(tests) / sizeof(tests[0])));
