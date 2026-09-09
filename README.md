@@ -210,7 +210,9 @@ click.
 | Help   | Keyboard shortcuts, About MissNotepad |
 
 Open a menu with **F10**, **Alt+F / E / O / V / H**, or the mouse. Move with
-the arrows, activate with Enter, leave with Esc.
+the arrows, activate with Enter, leave with Esc. The accelerator hints shown
+next to each item follow the active key theme (e.g. **^O** for Save under
+nano keys).
 
 ### Notepad keys (default)
 

@@ -96,6 +96,8 @@ void test_kbsel_home_end(void);
 void test_kbsel_doc_end(void);
 void test_kbsel_lines(void);
 void test_kbsel_type_replaces(void);
+void test_menu_theme_accels(void);
+void test_app_theme_switch_updates_accels(void);
 
 int main(void)
 {
@@ -196,6 +198,8 @@ int main(void)
         {"kbsel_doc_end", test_kbsel_doc_end},
         {"kbsel_lines", test_kbsel_lines},
         {"kbsel_type_replaces", test_kbsel_type_replaces},
+        {"menu_theme_accels", test_menu_theme_accels},
+        {"app_theme_switch_updates_accels", test_app_theme_switch_updates_accels},
     };
 
     return missnotepad_run_tests(tests, (int)(sizeof(tests) / sizeof(tests[0])));

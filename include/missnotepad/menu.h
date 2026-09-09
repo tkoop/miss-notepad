@@ -37,6 +37,7 @@ typedef struct {
 
 void menubar_init_notepad(MenuBar *m);
 void menubar_layout(MenuBar *m);
+void menubar_set_theme(MenuBar *m, KeyTheme theme);
 void menubar_close(MenuBar *m);
 int menubar_open(MenuBar *m, int index);
 int menubar_open_hot(MenuBar *m, char hot);

@@ -93,6 +93,69 @@ void menubar_init_notepad(MenuBar *m)
     menubar_layout(m);
 }
 
+/* Menu accelerator hints per key theme. Entries only list shortcuts that
+ * are actually active in that theme; NULL means no binding, so no hint is
+ * shown. Themes in table order: Notepad, nano, vi, Emacs. */
+static const struct {
+    Action act;
+    const char *notepad;
+    const char *nano;
+    const char *vi;
+    const char *emacs;
+} accel_table[] = {
+    {ACT_NEW, "Ctrl+N", NULL, NULL, NULL},
+    {ACT_OPEN, "Ctrl+O", NULL, NULL, "C-x C-f"},
+    {ACT_SAVE, "Ctrl+S", "^O", ":w", "C-x C-s"},
+    {ACT_SAVE_AS, NULL, NULL, NULL, "C-x C-w"},
+    {ACT_EXIT, "Ctrl+Q", "^X", ":q", "C-x C-c"},
+    {ACT_UNDO, "Ctrl+Z", NULL, "u", NULL},
+    {ACT_REDO, "Ctrl+Y", NULL, NULL, NULL},
+    {ACT_CUT, "Ctrl+X", "^K", NULL, "C-w"},
+    {ACT_COPY, "Ctrl+C", NULL, NULL, NULL},
+    {ACT_PASTE, "Ctrl+V", "^U", "p", "C-y"},
+    {ACT_DELETE, "Del", "Del", "x", "Del"},
+    {ACT_SELECT_ALL, "Ctrl+A", NULL, NULL, NULL},
+    {ACT_FIND, "Ctrl+F", "^W", "/", "C-s"},
+    {ACT_FIND_NEXT, "F3", NULL, "n", "C-r"},
+    {ACT_REPLACE, "Ctrl+H", "^\\", NULL, NULL},
+    {ACT_HELP_KEYS, NULL, "^G", NULL, NULL},
+};
+
+void menubar_set_theme(MenuBar *m, KeyTheme theme)
+{
+    size_t i;
+    int k, j;
+
+    for (k = 0; k < m->count; k++) {
+        for (j = 0; j < m->menus[k].count; j++) {
+            MenuItem *it = &m->menus[k].items[j];
+            for (i = 0; i < sizeof(accel_table) / sizeof(accel_table[0]);
+                 i++) {
+                if (accel_table[i].act != it->action) {
+                    continue;
+                }
+                switch (theme) {
+                case THEME_NANO:
+                    it->accel = accel_table[i].nano;
+                    break;
+                case THEME_VI:
+                    it->accel = accel_table[i].vi;
+                    break;
+                case THEME_EMACS:
+                    it->accel = accel_table[i].emacs;
+                    break;
+                case THEME_NOTEPAD:
+                default:
+                    it->accel = accel_table[i].notepad;
+                    break;
+                }
+                break;
+            }
+        }
+    }
+    menubar_layout(m);
+}
+
 void menubar_layout(MenuBar *m)
 {
     int i;
@@ -276,6 +339,7 @@ void menubar_sync_checks(MenuBar *m, int line_numbers, int word_wrap,
                          KeyTheme theme)
 {
     int i, j;
+    menubar_set_theme(m, theme);
     for (i = 0; i < m->count; i++) {
         for (j = 0; j < m->menus[i].count; j++) {
             MenuItem *it = &m->menus[i].items[j];
