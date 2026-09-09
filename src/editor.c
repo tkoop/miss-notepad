@@ -2,6 +2,7 @@
 
 #include "missnotepad/clipboard.h"
 #include "missnotepad/fileio.h"
+#include "missnotepad/keybind.h"
 #include "missnotepad/search.h"
 #include "missnotepad/settings.h"
 #include "missnotepad/utf8.h"
@@ -1573,8 +1574,8 @@ void editor_render(const Editor *e, Screen *s)
         snprintf(status, sizeof(status), " %s", e->status_msg);
     } else {
         snprintf(status, sizeof(status),
-                 " Ln %d, Col %d    Ctrl+S save  Ctrl+Z undo  Ctrl+Q quit",
-                 (int)e->cy + 1, editor_cursor_col(e) + 1);
+                 " Ln %d, Col %d    %s", (int)e->cy + 1,
+                 editor_cursor_col(e) + 1, keybind_status_hint(e->theme));
     }
     screen_fill(s, s->rows - 1, 0, s->cols, 1, (uint32_t)' ', STYLE_STATUS);
     screen_puts(s, s->rows - 1, 0, status, STYLE_STATUS);

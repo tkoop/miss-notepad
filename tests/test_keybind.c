@@ -104,3 +104,75 @@ void test_keybind_help_strings(void)
     ASSERT_TRUE("vi", strstr(keybind_help(THEME_VI), "hjkl") != NULL);
     ASSERT_TRUE("emacs", strstr(keybind_help(THEME_EMACS), "C-x C-s") != NULL);
 }
+
+void test_keybind_status_hints(void)
+{
+    ASSERT_TRUE("hint notepad", strstr(keybind_status_hint(THEME_NOTEPAD),
+                                       "Ctrl+S") != NULL);
+    ASSERT_TRUE("hint nano", strstr(keybind_status_hint(THEME_NANO),
+                                    "^O save") != NULL);
+    ASSERT_TRUE("hint vi", strstr(keybind_status_hint(THEME_VI),
+                                  ":w save") != NULL);
+    ASSERT_TRUE("hint emacs", strstr(keybind_status_hint(THEME_EMACS),
+                                     "C-x C-s save") != NULL);
+}
+
+void test_status_bar_follows_theme(void)
+{
+    Editor e;
+    Screen s;
+    int y;
+    int found = 0;
+    int x;
+    char line[256];
+    size_t n = 0;
+
+    editor_init(&e);
+    screen_init(&s);
+    screen_resize(&s, 8, 70);
+    editor_set_view(&e, 6, 70);
+
+    e.theme = THEME_NANO;
+    editor_render(&e, &s);
+    y = s.rows - 1;
+    for (x = 0; x < s.cols && n + 1 < sizeof(line); x++) {
+        line[n++] = (char)screen_get(&s, y, x);
+    }
+    line[n] = '\0';
+    found = strstr(line, "^O save") != NULL &&
+            strstr(line, "Ctrl+S") == NULL;
+    ASSERT_TRUE("nano hint on status line", found);
+
+    n = 0;
+    e.theme = THEME_EMACS;
+    editor_render(&e, &s);
+    for (x = 0; x < s.cols && n + 1 < sizeof(line); x++) {
+        line[n++] = (char)screen_get(&s, y, x);
+    }
+    line[n] = '\0';
+    ASSERT_TRUE("emacs hint on status line",
+                strstr(line, "C-x C-s save") != NULL);
+    ASSERT_TRUE("no notepad hint in emacs",
+                strstr(line, "Ctrl+S") == NULL);
+
+    n = 0;
+    e.theme = THEME_VI;
+    editor_render(&e, &s);
+    for (x = 0; x < s.cols && n + 1 < sizeof(line); x++) {
+        line[n++] = (char)screen_get(&s, y, x);
+    }
+    line[n] = '\0';
+    ASSERT_TRUE("vi hint on status line", strstr(line, ":w save") != NULL);
+
+    n = 0;
+    e.theme = THEME_NOTEPAD;
+    editor_render(&e, &s);
+    for (x = 0; x < s.cols && n + 1 < sizeof(line); x++) {
+        line[n++] = (char)screen_get(&s, y, x);
+    }
+    line[n] = '\0';
+    ASSERT_TRUE("notepad hint restored", strstr(line, "Ctrl+S save") != NULL);
+
+    screen_free(&s);
+    editor_free(&e);
+}

@@ -272,3 +272,19 @@ const char *keybind_help(KeyTheme theme)
         return "Notepad: Ctrl+S save  Ctrl+O open  Ctrl+F find  Ctrl+Z undo  Ctrl+Q quit";
     }
 }
+
+/* Short key hints for the status line, per theme. */
+const char *keybind_status_hint(KeyTheme theme)
+{
+    switch (theme) {
+    case THEME_NANO:
+        return "^O save  ^W find  ^K cut  ^X exit";
+    case THEME_EMACS:
+        return "C-x C-s save  C-s find  C-y paste  C-x C-c quit";
+    case THEME_VI:
+        return "i insert  Esc normal  :w save  :q quit";
+    case THEME_NOTEPAD:
+    default:
+        return "Ctrl+S save  Ctrl+Z undo  Ctrl+Q quit";
+    }
+}

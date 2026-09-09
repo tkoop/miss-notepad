@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Menu accelerator hints now follow the active key theme: switching to
   nano shows ^O/^X/^W hints, vi shows :w/:q/x// hints, and Emacs shows
   C-x C-s hints; actions with no binding in the theme show no hint
+- The status-bar key hints on the bottom line follow the theme too:
+  nano shows "^O save  ^W find  ^K cut  ^X exit", vi shows
+  "i insert  Esc normal  :w save  :q quit", Emacs shows
+  "C-x C-s save  C-s find  C-y paste  C-x C-c quit"
 
 ## [1.3.0] — 2026-09-08
 

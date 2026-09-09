@@ -27,5 +27,6 @@ typedef struct {
 void keybind_state_init(KeybindState *st);
 KeyCmd keybind_map(KeyTheme theme, const Event *ev, KeybindState *st);
 const char *keybind_help(KeyTheme theme);
+const char *keybind_status_hint(KeyTheme theme);
 
 #endif
