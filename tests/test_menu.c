@@ -157,7 +157,9 @@ void test_menu_theme_accels(void)
     /* nano theme */
     menubar_sync_checks(&m, 1, 1, THEME_NANO);
     it = find_item(&m, ACT_SAVE);
-    ASSERT_STREQ("nano save accel", "^O", it->accel);
+    ASSERT_STREQ("nano save accel", "^S", it->accel);
+    it = find_item(&m, ACT_SAVE_AS);
+    ASSERT_STREQ("nano save-as accel", "^O", it->accel);
     it = find_item(&m, ACT_EXIT);
     ASSERT_STREQ("nano exit accel", "^X", it->accel);
     it = find_item(&m, ACT_FIND);
@@ -196,8 +198,10 @@ void test_app_theme_switch_updates_accels(void)
     ASSERT_STREQ("starts notepad", "Ctrl+S",
                  find_item(&app.menu, ACT_SAVE)->accel);
     app_dispatch(&app, ACT_THEME_NANO);
-    ASSERT_STREQ("nano after dispatch", "^O",
+    ASSERT_STREQ("nano save after dispatch", "^S",
                  find_item(&app.menu, ACT_SAVE)->accel);
+    ASSERT_STREQ("nano save-as after dispatch", "^O",
+                 find_item(&app.menu, ACT_SAVE_AS)->accel);
     app_dispatch(&app, ACT_THEME_EMACS);
     ASSERT_STREQ("emacs after dispatch", "C-x C-s",
                  find_item(&app.menu, ACT_SAVE)->accel);

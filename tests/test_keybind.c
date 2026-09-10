@@ -36,6 +36,9 @@ void test_keybind_nano(void)
     ASSERT_EQ_INT("nano exit", ACT_EXIT, c.action);
     ev = key(KEY_CHAR, 'o', MOD_CTRL);
     c = keybind_map(THEME_NANO, &ev, &st);
+    ASSERT_EQ_INT("nano save-as", ACT_SAVE_AS, c.action);
+    ev = key(KEY_CHAR, 's', MOD_CTRL);
+    c = keybind_map(THEME_NANO, &ev, &st);
     ASSERT_EQ_INT("nano save", ACT_SAVE, c.action);
 }
 
@@ -109,8 +112,12 @@ void test_keybind_status_hints(void)
 {
     ASSERT_TRUE("hint notepad", strstr(keybind_status_hint(THEME_NOTEPAD),
                                        "Ctrl+S") != NULL);
-    ASSERT_TRUE("hint nano", strstr(keybind_status_hint(THEME_NANO),
-                                    "^O save") != NULL);
+    ASSERT_TRUE("hint nano save", strstr(keybind_status_hint(THEME_NANO),
+                                    "^S save") != NULL);
+    ASSERT_TRUE("hint nano save-as", strstr(keybind_status_hint(THEME_NANO),
+                                    "^O save-as") != NULL);
+    ASSERT_TRUE("hint nano exit", strstr(keybind_status_hint(THEME_NANO),
+                                    "^X exit") != NULL);
     ASSERT_TRUE("hint vi", strstr(keybind_status_hint(THEME_VI),
                                   ":w save") != NULL);
     ASSERT_TRUE("hint emacs", strstr(keybind_status_hint(THEME_EMACS),
@@ -139,7 +146,9 @@ void test_status_bar_follows_theme(void)
         line[n++] = (char)screen_get(&s, y, x);
     }
     line[n] = '\0';
-    found = strstr(line, "^O save") != NULL &&
+    found = strstr(line, "^S save") != NULL &&
+            strstr(line, "^O save-as") != NULL &&
+            strstr(line, "^X exit") != NULL &&
             strstr(line, "Ctrl+S") == NULL;
     ASSERT_TRUE("nano hint on status line", found);
 

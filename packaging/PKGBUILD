@@ -1,7 +1,7 @@
 # This file is for uploading to the AUR as 'missnotepad'.
 # Maintainer: Tim Koop <tkoop@users.noreply.github.com>
 pkgname=missnotepad
-pkgver=1.2.0
+pkgver=1.3.1
 pkgrel=1
 pkgdesc='Notepad-style text editor for the terminal'
 arch=('x86_64')

@@ -41,7 +41,7 @@ The script downloads a static binary from
 [Releases](https://github.com/tkoop/miss-notepad/releases), verifies its
 SHA-256 checksum, and installs to `~/.local/bin` (override the destination
 with `MISS_INSTALL_DIR=/some/path sh install.sh`, or pass a version like
-`install.sh 1.2.0`).
+`install.sh 1.3.1`).
 
 Prefer a native package? The release page also carries a `.deb`
 (Debian/Ubuntu/Mint) and an `.rpm` (Fedora/openSUSE); Arch users can use
@@ -211,8 +211,8 @@ click.
 
 Open a menu with **F10**, **Alt+F / E / O / V / H**, or the mouse. Move with
 the arrows, activate with Enter, leave with Esc. The accelerator hints shown
-next to each item follow the active key theme (e.g. **^O** for Save under
-nano keys).
+next to each item follow the active key theme (e.g. **^S** for Save and
+**^O** for Save As under nano keys).
 
 ### Notepad keys (default)
 
@@ -243,7 +243,8 @@ it as usual.
 
 | Key | Action |
 |-----|--------|
-| Ctrl+O | Save |
+| Ctrl+S | Save |
+| Ctrl+O | Save As |
 | Ctrl+X | Exit |
 | Ctrl+W | Find |
 | Ctrl+\ | Replace |
@@ -325,5 +326,5 @@ CHANGELOG.md
 
 ## Version
 
-MissNotepad **1.2.0** — the Notepad-for-the-terminal
+MissNotepad **1.3.1** — the Notepad-for-the-terminal
 vision.

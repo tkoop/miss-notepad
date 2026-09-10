@@ -94,7 +94,7 @@ static KeyCmd map_nano(const Event *ev)
         return act(ACT_EXIT);
     }
     if (ctrl(ev, 'o')) {
-        return act(ACT_SAVE);
+        return act(ACT_SAVE_AS);
     }
     if (ctrl(ev, 's')) {
         return act(ACT_SAVE);
@@ -262,7 +262,7 @@ const char *keybind_help(KeyTheme theme)
 {
     switch (theme) {
     case THEME_NANO:
-        return "nano: ^O save  ^X exit  ^W find  ^K cut  ^U paste  ^\\ replace";
+        return "nano: ^S save  ^O save-as  ^X exit  ^W find  ^K cut  ^U paste  ^\\ replace";
     case THEME_EMACS:
         return "Emacs: C-x C-s save  C-x C-c quit  C-s find  C-y paste  C-w cut";
     case THEME_VI:
@@ -278,7 +278,7 @@ const char *keybind_status_hint(KeyTheme theme)
 {
     switch (theme) {
     case THEME_NANO:
-        return "^O save  ^W find  ^K cut  ^X exit";
+        return "^S save  ^O save-as  ^X exit  ^K cut";
     case THEME_EMACS:
         return "C-x C-s save  C-s find  C-y paste  C-x C-c quit";
     case THEME_VI:

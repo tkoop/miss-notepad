@@ -77,6 +77,11 @@ void dialog_show_vicmd(Dialog *d)
     setup(d, DLG_VICMD, "vi", ":", 1, 0);
 }
 
+void dialog_show_goto(Dialog *d)
+{
+    setup(d, DLG_GOTO, "Go To Line", "Enter line number:", 1, 0);
+}
+
 static void insert_char(Dialog *d, uint32_t cp)
 {
     char u[4];

@@ -33,7 +33,18 @@ typedef enum {
     ACT_MOVE_HOME,
     ACT_MOVE_END,
     ACT_KILL_LINE,
-    ACT_VI_COLON
+    ACT_VI_COLON,
+    /* nano extras: actions the editor core supports but which only the
+     * nano theme exposes directly. */
+    ACT_INSERT_FILE,
+    ACT_PAGE_UP,
+    ACT_PAGE_DOWN,
+    ACT_DOC_HOME,
+    ACT_DOC_END,
+    ACT_CURSOR_POS,
+    ACT_DELETE_WORD_LEFT,
+    ACT_DELETE_WORD_RIGHT,
+    ACT_GOTO_LINE
 } Action;
 
 #endif

@@ -3,8 +3,8 @@
 
 #define MISSNOTEPAD_VERSION_MAJOR 1
 #define MISSNOTEPAD_VERSION_MINOR 3
-#define MISSNOTEPAD_VERSION_PATCH 0
-#define MISSNOTEPAD_VERSION_STRING "1.3.0"
+#define MISSNOTEPAD_VERSION_PATCH 1
+#define MISSNOTEPAD_VERSION_STRING "1.3.1"
 #define MISSNOTEPAD_NAME "MissNotepad"
 
 const char *missnotepad_version_string(void);

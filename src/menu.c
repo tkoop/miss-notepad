@@ -105,8 +105,8 @@ static const struct {
 } accel_table[] = {
     {ACT_NEW, "Ctrl+N", NULL, NULL, NULL},
     {ACT_OPEN, "Ctrl+O", NULL, NULL, "C-x C-f"},
-    {ACT_SAVE, "Ctrl+S", "^O", ":w", "C-x C-s"},
-    {ACT_SAVE_AS, NULL, NULL, NULL, "C-x C-w"},
+    {ACT_SAVE, "Ctrl+S", "^S", ":w", "C-x C-s"},
+    {ACT_SAVE_AS, NULL, "^O", NULL, "C-x C-w"},
     {ACT_EXIT, "Ctrl+Q", "^X", ":q", "C-x C-c"},
     {ACT_UNDO, "Ctrl+Z", NULL, "u", NULL},
     {ACT_REDO, "Ctrl+Y", NULL, NULL, NULL},

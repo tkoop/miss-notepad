@@ -99,5 +99,12 @@ int editor_select_all(Editor *e);
 int editor_find_next(Editor *e);
 int editor_replace_all(Editor *e, const char *needle, const char *repl);
 int editor_kill_line(Editor *e);
+void editor_goto_line(Editor *e, size_t line_1based);
+int editor_insert_file(Editor *e, const char *path);
+int editor_delete_forward(Editor *e);
+int editor_delete_word_left(Editor *e);
+int editor_delete_word_right(Editor *e);
+int editor_insert_file(Editor *e, const char *path);
+int editor_report_cursor(Editor *e);
 
 #endif

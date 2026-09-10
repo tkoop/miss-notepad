@@ -5,15 +5,21 @@ All notable changes to MissNotepad are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [1.3.1] — 2026-09-10
+
+### Fixed
+
+- nano theme: Ctrl+S saves, Ctrl+O opens Save As, Ctrl+X exits; the File
+  menu shows ^S/^O/^X and the bottom bar shows
+  "^S save  ^O save-as  ^X exit  ^K cut" when nano keys are active
 
 ### Changed
 
 - Menu accelerator hints now follow the active key theme: switching to
-  nano shows ^O/^X/^W hints, vi shows :w/:q/x// hints, and Emacs shows
+  nano shows ^S/^O/^X/^W hints, vi shows :w/:q/x// hints, and Emacs shows
   C-x C-s hints; actions with no binding in the theme show no hint
 - The status-bar key hints on the bottom line follow the theme too:
-  nano shows "^O save  ^W find  ^K cut  ^X exit", vi shows
+  nano shows "^S save  ^O save-as  ^X exit  ^K cut", vi shows
   "i insert  Esc normal  :w save  :q quit", Emacs shows
   "C-x C-s save  C-s find  C-y paste  C-x C-c quit"
 
