@@ -17,6 +17,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   "i insert  Esc normal  :w save  :q quit", Emacs shows
   "C-x C-s save  C-s find  C-y paste  C-x C-c quit"
 
+### Tests
+
+- App-level regression tests for Shift+Ctrl+arrows: extending the
+  selection word by word, shrinking and collapsing back at the anchor,
+  re-extending, and plain Ctrl+arrows clearing the selection — covered
+  on the exact TUI event path (event_parse -> app_handle_event) in all
+  key themes (Notepad, nano, vi insert mode, Emacs) and across line
+  boundaries
+
 ## [1.3.0] — 2026-09-08
 
 ### Added

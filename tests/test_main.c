@@ -96,6 +96,11 @@ void test_kbsel_home_end(void);
 void test_kbsel_doc_end(void);
 void test_kbsel_lines(void);
 void test_kbsel_type_replaces(void);
+void test_app_kbsel_notepad(void);
+void test_app_kbsel_nano(void);
+void test_app_kbsel_emacs(void);
+void test_app_kbsel_vi_insert(void);
+void test_app_kbsel_multiline(void);
 void test_menu_theme_accels(void);
 void test_app_theme_switch_updates_accels(void);
 void test_keybind_status_hints(void);
@@ -200,6 +205,11 @@ int main(void)
         {"kbsel_doc_end", test_kbsel_doc_end},
         {"kbsel_lines", test_kbsel_lines},
         {"kbsel_type_replaces", test_kbsel_type_replaces},
+        {"app_kbsel_notepad", test_app_kbsel_notepad},
+        {"app_kbsel_nano", test_app_kbsel_nano},
+        {"app_kbsel_emacs", test_app_kbsel_emacs},
+        {"app_kbsel_vi_insert", test_app_kbsel_vi_insert},
+        {"app_kbsel_multiline", test_app_kbsel_multiline},
         {"menu_theme_accels", test_menu_theme_accels},
         {"app_theme_switch_updates_accels", test_app_theme_switch_updates_accels},
         {"keybind_status_hints", test_keybind_status_hints},

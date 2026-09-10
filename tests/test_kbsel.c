@@ -151,3 +151,129 @@ void test_kbsel_type_replaces(void)
     ASSERT_EQ_INT("sel off after typing", 0, e.sel_on);
     editor_free(&e);
 }
+
+/* ---- App-level tests: the exact TUI path (event_parse -> app_handle_event
+ * -> keybind_map -> editor) per theme. ---- */
+#include "missnotepad/app.h"
+
+static void appfeed(App *app, const char *bytes)
+{
+    Event ev;
+    int used = event_parse((const unsigned char *)bytes, strlen(bytes), 0, &ev);
+    if (used > 0) {
+        app_handle_event(app, &ev);
+    }
+}
+
+static const char *clip_of(App *app, char *out, size_t n)
+{
+    editor_copy(&app->editor);
+    if (app->editor.clip != NULL) {
+        snprintf(out, n, "%.*s", (int)app->editor.clip_len, app->editor.clip);
+    } else {
+        snprintf(out, n, "%s", "");
+    }
+    return out;
+}
+
+static void assert_sel(App *app, const char *name, const char *want)
+{
+    char got[64];
+    char msg[160];
+    clip_of(app, got, sizeof(got));
+    snprintf(msg, sizeof(msg), "got=\"%s\" cy=%zu cx=%zu sel_on=%d", got,
+             app->editor.cy, app->editor.cx, app->editor.sel_on);
+    ASSERT_TRUE(name, strcmp(got, want) == 0);
+    if (strcmp(got, want) != 0) {
+        fprintf(stderr, "    detail: %s\n", msg);
+    }
+}
+
+static void test_word_extend_in_theme(KeyTheme theme, int vi_insert_first)
+{
+    App app;
+    char name[80];
+    ASSERT_EQ_INT("init", 0, app_init(&app, NULL));
+    app.config_path[0] = '\0'; /* do not write the user's real config */
+    app.editor.theme = theme;
+    app.keys.vi_mode = vi_insert_first ? VI_INSERT : VI_NORMAL;
+    editor_set_view(&app.editor, 20, 80);
+    editor_insert_text(&app.editor, "alpha beta gamma", 16);
+    appfeed(&app, "\033[1;5H"); /* Ctrl+Home: doc start */
+
+    appfeed(&app, "\033[1;6C"); /* Ctrl+Shift+Right */
+    snprintf(name, sizeof(name), "theme %d word extend", (int)theme);
+    assert_sel(&app, name, "alpha ");
+    appfeed(&app, "\033[1;6C");
+    snprintf(name, sizeof(name), "theme %d word extend again", (int)theme);
+    assert_sel(&app, name, "alpha beta ");
+
+    appfeed(&app, "\033[1;6D"); /* Ctrl+Shift+Left crosses back */
+    snprintf(name, sizeof(name), "theme %d word shrink", (int)theme);
+    assert_sel(&app, name, "alpha ");
+    appfeed(&app, "\033[1;6D");
+    snprintf(name, sizeof(name), "theme %d word collapse", (int)theme);
+    assert_sel(&app, name, "");
+
+    appfeed(&app, "\033[1;6C"); /* and extend anew */
+    snprintf(name, sizeof(name), "theme %d word re-extend", (int)theme);
+    assert_sel(&app, name, "alpha ");
+
+    /* plain Ctrl+Right clears the selection and word-moves */
+    appfeed(&app, "\033[1;5C");
+    snprintf(name, sizeof(name), "theme %d plain ctrl clears", (int)theme);
+    ASSERT_TRUE(name, app.editor.sel_on == 0);
+    ASSERT_EQ_INT("theme word-moved caret", 11, (int)app.editor.cx);
+
+    /* extending back from the new caret selects to the word start */
+    appfeed(&app, "\033[1;6D");
+    snprintf(name, sizeof(name), "theme %d extend back from new caret",
+             (int)theme);
+    assert_sel(&app, name, "beta ");
+    app_free(&app);
+}
+
+void test_app_kbsel_notepad(void)
+{
+    test_word_extend_in_theme(THEME_NOTEPAD, 0);
+}
+
+void test_app_kbsel_nano(void)
+{
+    test_word_extend_in_theme(THEME_NANO, 0);
+}
+
+void test_app_kbsel_emacs(void)
+{
+    test_word_extend_in_theme(THEME_EMACS, 0);
+}
+
+void test_app_kbsel_vi_insert(void)
+{
+    test_word_extend_in_theme(THEME_VI, 1);
+}
+
+void test_app_kbsel_multiline(void)
+{
+    App app;
+    char name[80];
+    ASSERT_EQ_INT("init", 0, app_init(&app, NULL));
+    app.config_path[0] = '\0';
+    editor_set_view(&app.editor, 20, 80);
+    editor_insert_text(&app.editor, "one\ntwo\nthree", 13);
+    appfeed(&app, "\033[1;5H"); /* Ctrl+Home: doc start */
+
+    appfeed(&app, "\033[1;2B"); /* Shift+Down */
+    snprintf(name, sizeof(name), "ml down1");
+    assert_sel(&app, name, "one\n");
+    appfeed(&app, "\033[1;2B");
+    snprintf(name, sizeof(name), "ml down2");
+    assert_sel(&app, name, "one\ntwo\n");
+    appfeed(&app, "\033[1;6C"); /* Ctrl+Shift+Right from (2,0): to end of "three" */
+    snprintf(name, sizeof(name), "ml word extend over lines");
+    assert_sel(&app, name, "one\ntwo\nthree");
+    appfeed(&app, "\033[1;6D"); /* Ctrl+Shift+Left back to start of "three" */
+    snprintf(name, sizeof(name), "ml word shrink");
+    assert_sel(&app, name, "one\ntwo\n");
+    app_free(&app);
+}
